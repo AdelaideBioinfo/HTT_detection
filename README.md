@@ -33,7 +33,7 @@ flowchart](HTT_detection_workflow.png){width="800"}
 Prerequisites
 -------------
 
-### Recommended programs/tools []{#recommended-programs}
+### Recommended programs/tools <a name="recommended-programs" />
 
 -   BLAST (https://blast.ncbi.nlm.nih.gov/Blast.cgi)
 -   SAMtools (http://www.htslib.org/)
@@ -50,7 +50,7 @@ Prerequisites
 -   R (https://www.r-project.org/)
     -   Required packages: tidyverse, plyranges, BSgenome, optranges
 
-### Optional programs/tools []{#optional-programs}
+### Optional programs/tools <a name="optional-programs" />
 
 -   CARP
     (https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0193588)
@@ -63,7 +63,7 @@ Prerequisites
 -   IQ-TREE (http://www.iqtree.org/)
 -   CD-HIT (http://weizhong-lab.ucsd.edu/cd-hit/)
 
-### For users []{#for-users}
+### For users <a name="for-users" />
 
 Our methods are implemented in Linux/R and we assume that users will be
 familiar with the bash shell and R. Some level of familiarity with
@@ -72,7 +72,7 @@ queuing systems in HPC is also recommended.
 Workflows
 ---------
 
-### A: Ab initio workflow
+### A: Ab initio workflow <a name="workflowA" />
 
 Pipeline A is designed to identify potential horizontally transferred
 sequences in newly sequenced genomes based on their absence from the
@@ -90,22 +90,18 @@ NOTE: Assume you are in `Pipeline_A` folder to run following scripts.
 
 Run [HT\_stage\_0.sh](Pipeline_A/HT_stage_0.sh)
 
-::: {#cb1 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 GENOME=<source_genome> THREADS=<number of threads to use> bash HT_stage_0.sh 
 ```
-:::
 
 **1) Cluster and perform initial sweep and generate multiple alignments
 for manual curation of repeats.**
 
 Run [HT\_stage\_1.sh](Pipeline_A/HT_stage_1.sh)
 
-::: {#cb2 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 GENOME=<source_genome> OUTGROUP=<outgroup_genome> QUERY=<file_containing_raw_repeats> THREADS=<number of threads to use> bash HT_stage_1.sh
 ```
-:::
 
 This script performs an initial search for sequences which have 2 or
 more copies in the query genome and are absent from the outgroup genome.
@@ -127,11 +123,9 @@ them most closely related species.**
 Run [HT\_stage\_2.sh](Pipeline_A/HT_stage_2.sh) with using curated
 repeats
 
-::: {#cb3 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 GENOME=<source_genome> SPECIES=<name_of_source_species> OUTGROUP=<outgroup_genome> QUERY=<file_containing_curated_repeats> THREADS=<number of threads to use> bash HT_stage_2.sh
 ```
-:::
 
 This script carries out a validation of the initial search using
 consensus sequences generated from the curation step. This is necessary
@@ -150,7 +144,9 @@ identify most closely related sequences and species with no hits.**
 
 Run [HT\_stage\_3.sh](Pipeline_A/HT_stage_3.sh)
 
-    bash GENOME=<name_of_source_species> OUTGROUPS=<file_containing_list_of_genomes> QUERY=<file_containing_curated_repeats> THREADS=<number of threads to use> bash HT_stage_2.sh
+```bash
+GENOME=<name_of_source_species> OUTGROUPS=<file_containing_list_of_genomes> QUERY=<file_containing_curated_repeats> THREADS=<number of threads to use> bash HT_stage_2.sh
+```
 
 This script searches for repeats verified as HTT candidates, searches
 for them in other species (from a list provided) and creates a MSA of
@@ -179,7 +175,7 @@ for your particular situation.
         Harbingers identified in Laticauda colubrina will also be
         present in Laticauda laticaudata and various echinoderms
 
-### B: Workflow for global HTT screening of specific TEs []{#workflowB}
+### B: Workflow for global HTT screening of specific TEs <a name="workflowB" />
 
 Pipeline B is used for detecting potential horizontal transfer events,
 starting from a set of curated repeat consensus sequences from available
@@ -205,11 +201,9 @@ Run [0a\_rename\_genome.sh](Pipeline_B/0a_rename_genome.sh).
 
 Example usage:
 
-::: {#cb5 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 GENOME=<source_genome> SPECIES=<species_name> bash 0a_rename_genome.sh
 ```
-:::
 
 *0b) Make each genome a BLAST database and create indexes.*
 
@@ -218,11 +212,9 @@ Run
 
 Example usage:
 
-::: {#cb6 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 bash 0b_make_database_and_index.sh
 ```
-:::
 
 **1) BLAST TE of interest against all available genomes.**
 
@@ -236,11 +228,9 @@ Run
 
 Example usage:
 
-::: {#cb7 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 DIR=test_genome DATABASE=YarrowiaLipolytica_ASM252v1.fa QUERY=L1_ORFp.fasta RESULTSDIR=results sbatch 1a_tblastn_and_extract.sbatch
 ```
-:::
 
 *1b) (Optional) Use BLASTN or LASTZ with nucleotide sequence queries.*
 
@@ -249,11 +239,9 @@ Run
 
 Example usage:
 
-::: {#cb8 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 GENOMEDIR=test_genome GENOME=YarrowiaLipolytica_ASM252v1.fa QUERYDIR=test_query QUERY=L1_nucl_seqs.fasta RESULTSDIR=results sbatch 1b_lastz_and_extract.sbatch
 ```
-:::
 
 *1c) For each genome, combine all identified nucleotide sequences from
 the previous steps.*
@@ -262,11 +250,9 @@ Run [1c\_combine\_hits.sbatch](Pipeline_B/1c_combine_hits.sbatch).
 
 Example usage:
 
-::: {#cb9 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 SPECIES=YarrowiaLipolytica ELEMENT=L1 LASTZFILE=YarrowiaLipolytica_ASM252v1.fa_L1_nucl_seqs.fasta_lastz.bed TBLASTNFILE=YarrowiaLipolytica_ASM252v1.fa_L1_ORFp.fasta_merged.bed GENOME=YarrowiaLipolytica_ASM252v1.fa RESULTSDIR=results sbatch 1c_combine_hits.sbatch
 ```
-:::
 
 *1d) Add header annotations to indicate the genome that each sequence
 was derived from.*
@@ -276,11 +262,9 @@ Run
 
 Example usage:
 
-::: {#cb10 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 SPECIES=YarrowiaLipolytica ELEMENT=L1 RESULTSDIR=results bash 1d_append_name_to_headers.sh
 ```
-:::
 
 Repeat screening in an iterative process (e.g. BLAST-ing the new,
 larger, query dataset against each genome and then combining the output)
@@ -296,11 +280,9 @@ Run
 
 Example usage:
 
-::: {#cb11 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 INDIR=results FILE=YarrowiaLipolytica_L1_combined.fasta OUTDIR=results/censored sbatch 2a_censor_sequences.sbatch
 ```
-:::
 
 *2b) Confirm and extract hits that match the correct TE family.*
 
@@ -309,11 +291,9 @@ Run
 
 Example usage:
 
-::: {#cb12 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 SPECIES=Yarrowia.lipolytica FILE=Yarrowia.lipolytica_L1_combined.fasta GENOME=test_genome/YarrowiaLipolytica_ASM252v1.fa ELEMENT=L1 QUERY=test_query/known_L1_elements_from_repbase.txt CENSORDIR=results/censored sbatch 2b_check_censor_output.sbatch
 ```
-:::
 
 **3) Cluster all sequences obtained from the iterative alignment
 screening.**
@@ -339,11 +319,9 @@ changing the clustering identity threshold (ID) as required.
 
 Example usage:
 
-::: {#cb13 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 INDIR=results/allSpeciesCombined FILE=allSpecies_L1.fasta ID=80 PREFIX=c sbatch 3a_vsearch_cluster_for_nucleotide_seqs.sbatch
 ```
-:::
 
 *3b) All-against-all clustering of amino acid sequences using USEARCH.*
 
@@ -361,11 +339,9 @@ Run
 
 Example usage:
 
-::: {#cb14 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 INDIR=results/allSpeciesCombined FILE=allSpecies_L1_ORFp.fasta ID=90 PREFIX=r sbatch 3b_usearch_cluster_for_aa_seqs.sbatch
 ```
-:::
 
 **4) Identify clusters containing TE sequences from multiple species
 (e.g. based on the sequence header names).**
@@ -379,7 +355,7 @@ A test genome (fungus *Yarrowia lipolytica*) has been placed in
 as a [test\_query](Pipeline_B/test_query). We recommend trying out the
 workflow using these files first.
 
-### C: HTT candidates validation []{#workflowC}
+### C: HTT candidates validation <a name="workflowC" />
 
 Pipeline C includes several additional steps to validate detected HTT
 candidates from Pipeline A or Pipeline B. Manually checking will be
@@ -409,11 +385,9 @@ Run [2\_usearchConsensus.sbatch](Pipeline_C/2_usearchConsensus.sbatch)
 Example usage (please modify job settings according to your HPC
 environment):
 
-::: {#cb15 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 INDIR=results FILE=HTT_condidates.fasta ID=80 sbatch 2_usearchConsensus.sbatch
 ```
-:::
 
 **3) Align all consensus sequences/centroids to generate a sequence
 phylogeny.**
@@ -429,11 +403,9 @@ Run
 Example usage (please modify job settings according to your HPC
 environment):
 
-::: {#cb16 .sourceCode}
-``` {.sourceCode .bash}
+```bash
 INDIR=results FILE=HTT_condidates_centroids.fasta MINBLOCKSIZE=5 ALLOWEDGAPS=a sbatch 3_alignRefineAndTree.sbatch
 ```
-:::
 
 **4) Further analysis**
 
@@ -449,7 +421,7 @@ BLAST-ing sequences from HTT candidate clusters against all eukaryotes
 on NCBI (not just your database of genomes) to identify potential
 vector/source species.
 
-Additional notes []{#notes}
+Additional notes <a name="notes" />
 ---------------------------
 
 -   1.  Software based TE annotation must be manually curated prior to
@@ -509,7 +481,7 @@ References
     retrotransposons in eukaryotes \[Data set\]. Zenodo.
     http://doi.org/10.5281/zenodo.1246946
 
-The end []{#the-end}
+The end <a name="the-end" />
 --------------------
 
 In the words of George Box, "Essentially, all models are wrong, but some
