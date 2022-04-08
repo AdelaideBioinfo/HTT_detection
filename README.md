@@ -27,8 +27,7 @@ that converge at the stage where HTT candidates are validated (C in
 Figure 1). Workflows A, B and C are described below, with numbered steps
 in each section that link back to Figure 1.
 
-![Figure 1, The HTT detection
-flowchart](HTT_detection_workflow.png){width="800"}
+<img width="800" alt="The overall flowchart" src="scripts/HTT_detection_workflow.png">
 
 Prerequisites
 -------------
@@ -88,7 +87,7 @@ NOTE: Assume you are in `Pipeline_A` folder to run following scripts.
 
 **0) Ab initio TE annotation using RepeatModeler.**
 
-Run [HT\_stage\_0.sh](Pipeline_A/HT_stage_0.sh)
+Run [HT\_stage\_0.sh](./Pipeline_A/HT_stage_0.sh)
 
 ```bash
 GENOME=<source_genome> THREADS=<number of threads to use> bash HT_stage_0.sh 
@@ -97,7 +96,7 @@ GENOME=<source_genome> THREADS=<number of threads to use> bash HT_stage_0.sh
 **1) Cluster and perform initial sweep and generate multiple alignments
 for manual curation of repeats.**
 
-Run [HT\_stage\_1.sh](Pipeline_A/HT_stage_1.sh)
+Run [HT\_stage\_1.sh](./Pipeline_A/HT_stage_1.sh)
 
 ```bash
 GENOME=<source_genome> OUTGROUP=<outgroup_genome> QUERY=<file_containing_raw_repeats> THREADS=<number of threads to use> bash HT_stage_1.sh
@@ -120,7 +119,7 @@ transposons.
 finding absence or higher-than-expected-divergence from the genomes of
 them most closely related species.**
 
-Run [HT\_stage\_2.sh](Pipeline_A/HT_stage_2.sh) with using curated
+Run [HT\_stage\_2.sh](./Pipeline_A/HT_stage_2.sh) with using curated
 repeats
 
 ```bash
@@ -142,7 +141,7 @@ that contain the complete TE of interest.
 **4) Local alignment of HTT condidates against all available genomes to
 identify most closely related sequences and species with no hits.**
 
-Run [HT\_stage\_3.sh](Pipeline_A/HT_stage_3.sh)
+Run [HT\_stage\_3.sh](./Pipeline_A/HT_stage_3.sh)
 
 ```bash
 GENOME=<name_of_source_species> OUTGROUPS=<file_containing_list_of_genomes> QUERY=<file_containing_curated_repeats> THREADS=<number of threads to use> bash HT_stage_2.sh
@@ -197,7 +196,7 @@ NOTE: Assume you are in `Pipeline_B` to run following scripts.
 As the names given to genome assemblies are not usually informative, you
 will want to append species names to the genome names.
 
-Run [0a\_rename\_genome.sh](Pipeline_B/0a_rename_genome.sh).
+Run [0a\_rename\_genome.sh](./Pipeline_B/0a_rename_genome.sh).
 
 Example usage:
 
@@ -208,7 +207,7 @@ GENOME=<source_genome> SPECIES=<species_name> bash 0a_rename_genome.sh
 *0b) Make each genome a BLAST database and create indexes.*
 
 Run
-[0b\_make\_database\_and\_index.sh](Pipeline_B/0b_make_database_and_index.sh).
+[0b\_make\_database\_and\_index.sh](./Pipeline_B/0b_make_database_and_index.sh).
 
 Example usage:
 
@@ -224,7 +223,7 @@ This will identify similar TEs in distantly related species. Output will
 be nucleotide sequences.
 
 Run
-[1a\_tblastn\_and\_extract.sbatch](Pipeline_B/1a_tblastn_and_extract.sbatch).
+[1a\_tblastn\_and\_extract.sbatch](./Pipeline_B/1a_tblastn_and_extract.sbatch).
 
 Example usage:
 
@@ -235,7 +234,7 @@ DIR=test_genome DATABASE=YarrowiaLipolytica_ASM252v1.fa QUERY=L1_ORFp.fasta RESU
 *1b) (Optional) Use BLASTN or LASTZ with nucleotide sequence queries.*
 
 Run
-[1b\_lastz\_and\_extract.sbatch](Pipeline_B/1b_lastz_and_extract.sbatch).
+[1b\_lastz\_and\_extract.sbatch](./Pipeline_B/1b_lastz_and_extract.sbatch).
 
 Example usage:
 
@@ -246,7 +245,7 @@ GENOMEDIR=test_genome GENOME=YarrowiaLipolytica_ASM252v1.fa QUERYDIR=test_query 
 *1c) For each genome, combine all identified nucleotide sequences from
 the previous steps.*
 
-Run [1c\_combine\_hits.sbatch](Pipeline_B/1c_combine_hits.sbatch).
+Run [1c\_combine\_hits.sbatch](./Pipeline_B/1c_combine_hits.sbatch).
 
 Example usage:
 
@@ -258,7 +257,7 @@ SPECIES=YarrowiaLipolytica ELEMENT=L1 LASTZFILE=YarrowiaLipolytica_ASM252v1.fa_L
 was derived from.*
 
 Run
-[1d\_append\_name\_to\_headers.sh](Pipeline_B/1d_append_name_to_headers.sh).
+[1d\_append\_name\_to\_headers.sh](./Pipeline_B/1d_append_name_to_headers.sh).
 
 Example usage:
 
@@ -276,7 +275,7 @@ until no new hits are found.
 (e.g. RepBase or Dfam).*
 
 Run
-[2a\_censor\_sequences.sbatch](Pipeline_B/2a_censor_sequences.sbatch).
+[2a\_censor\_sequences.sbatch](./Pipeline_B/2a_censor_sequences.sbatch).
 
 Example usage:
 
@@ -287,7 +286,7 @@ INDIR=results FILE=YarrowiaLipolytica_L1_combined.fasta OUTDIR=results/censored 
 *2b) Confirm and extract hits that match the correct TE family.*
 
 Run
-[2b\_check\_censor\_output.sbatch](Pipeline_B/2b_check_censor_output.sbatch).
+[2b\_check\_censor\_output.sbatch](./Pipeline_B/2b_check_censor_output.sbatch).
 
 Example usage:
 
@@ -314,7 +313,7 @@ You can use full-length nucleotide sequences, or nucleotide sequences of
 the open reading frames only.
 
 Run
-[3a\_vsearch\_cluster\_for\_nucleotide\_seqs.sbatch](Pipeline_B/3a_vsearch_cluster_for_nucleotide_seqs.sbatch),
+[3a\_vsearch\_cluster\_for\_nucleotide\_seqs.sbatch](./Pipeline_B/3a_vsearch_cluster_for_nucleotide_seqs.sbatch),
 changing the clustering identity threshold (ID) as required.
 
 Example usage:
@@ -335,7 +334,7 @@ of amino acid sequences from ORFs, or reverse transcriptase domains from
 retrotransposons/transposase domains from DNA transposons.
 
 Run
-[3b\_usearch\_cluster\_for\_aa\_seqs.sbatch](Pipeline_B/3b_usearch_cluster_for_aa_seqs.sbatch).
+[3b\_usearch\_cluster\_for\_aa\_seqs.sbatch](./Pipeline_B/3b_usearch_cluster_for_aa_seqs.sbatch).
 
 Example usage:
 
@@ -351,8 +350,8 @@ These clusters are the HTT candidates.
 ***Test dataset for Pipeline B***
 
 A test genome (fungus *Yarrowia lipolytica*) has been placed in
-[test\_genome](Pipeline_B/test_genome), along with a set of L1 repeats
-as a [test\_query](Pipeline_B/test_query). We recommend trying out the
+[test\_genome](./Pipeline_B/test_genome), along with a set of L1 repeats
+as a [test\_query](./Pipeline_B/test_query). We recommend trying out the
 workflow using these files first.
 
 ### C: HTT candidates validation <a name="workflowC" />
@@ -380,7 +379,7 @@ taxa (Manually checking in aligment viewer will be required).
 USEARCH, and align all sub-clusters to create consensus sequences, or
 identify centroids.**
 
-Run [2\_usearchConsensus.sbatch](Pipeline_C/2_usearchConsensus.sbatch)
+Run [2\_usearchConsensus.sbatch](./Pipeline_C/2_usearchConsensus.sbatch)
 
 Example usage (please modify job settings according to your HPC
 environment):
@@ -398,7 +397,7 @@ distribution of representative sequences can be compared to the species
 phylogeny to see if it is discordant.
 
 Run
-[3\_alignRefineAndTree.sbatch](Pipeline_C/3_alignRefineAndTree.sbatch)
+[3\_alignRefineAndTree.sbatch](./Pipeline_C/3_alignRefineAndTree.sbatch)
 
 Example usage (please modify job settings according to your HPC
 environment):
