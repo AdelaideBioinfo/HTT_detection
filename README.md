@@ -462,20 +462,16 @@ References
 -   Galbraith JD, Ludington AJ, Suh A, Sanders KL, Adelson DL. New
     Environment, New Invaders-Repeated Horizontal Transfer of LINEs to
     Sea Snakes. Genome Biol Evol. 2020;12:2370--83.
-
 -   Galbraith JD, Ludington AJ, Sanders KL, Suh A, Adelson DL.
     Horizontal transfer and subsequent explosive expansion of a DNA
     transposon in sea kraits (Laticauda). Biol Lett. 2021;17:20210342.
-
 -   Ivancevic AM, Kortschak RD, Bertozzi T, Adelson DL. Horizontal
     transfer of BovB and L1 retrotransposons in eukaryotes. Genome Biol.
     2018;19:85.
-
 -   Ivancevic, Atma M, Kortschak, R Daniel, Bertozzi, Terry, & Adelson,
     David L. (2018). Dataset from: Horizontal transfer of BovB and L1
     retrotransposons in eukaryotes \[Data set\]. Zenodo.
     http://doi.org/10.5281/zenodo.1246946
-
 -   Ivancevic Atma M. (2018, May 15). AdelaideBioinfo/horizontalTransfer: 
     First release of horizontal transfer code (Version v1.0.0). Zenodo.
     http://doi.org/10.5281/zenodo.1246999
