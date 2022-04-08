@@ -27,7 +27,8 @@ that converge at the stage where HTT candidates are validated (C in
 Figure 1). Workflows A, B and C are described below, with numbered steps
 in each section that link back to Figure 1.
 
-<img width="800" alt="The overall flowchart" src="scripts/HTT_detection_workflow.png">
+![Figure 1, The HTT detection
+flowchart](HTT_detection_workflow.png)
 
 Prerequisites
 -------------
