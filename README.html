@@ -1,0 +1,240 @@
+<h1 id="detecting-horizontal-transfer-of-transposons-htt">Detecting Horizontal Transfer of Transposons (HTT)</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#prerequisites">Prerequisites</a>
+<ul>
+<li><a href="#recommended-programs">Recommended programs/tools</a></li>
+<li><a href="#optional-programs">Optional programs/tools</a></li>
+<li><a href="#for-users">For users</a></li>
+</ul></li>
+<li><a href="#workflows">Workflows</a>
+<ul>
+<li><a href="#workflowA">A: Ab initio workflow</a></li>
+<li><a href="#workflowB">B: Workflow for global HTT screening of specific TEs</a></li>
+<li><a href="#workflowC">C: HTT candidates validation</a></li>
+</ul></li>
+<li><a href="#notes">Additional notes</a></li>
+<li><a href="#references">References</a></li>
+<li><a href="#the-end">The end</a></li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<p>The specific steps for the identification of HTT events are typically applied to two scenarios with distinct workflows (A and B in Figure 1) that converge at the stage where HTT candidates are validated (C in Figure 1). Workflows A, B and C are described below, with numbered steps in each section that link back to Figure 1.</p>
+<figure>
+<img src="HTT_detection_workflow.png" alt="Figure 1, The HTT detection flowchart" width="800" /><figcaption>Figure 1, The HTT detection flowchart</figcaption>
+</figure>
+<h2 id="prerequisites">Prerequisites</h2>
+<h3 id="recommended-programstools">Recommended programs/tools <span id="recommended-programs"></span></h3>
+<ul>
+<li>BLAST (https://blast.ncbi.nlm.nih.gov/Blast.cgi)</li>
+<li>SAMtools (http://www.htslib.org/)</li>
+<li>BEDtools (http://bedtools.readthedocs.io/en/latest/)</li>
+<li>CENSOR, which requires wu-blast and bioperl (https://girinst.org/downloads/software/censor/)</li>
+<li>USEARCH (https://www.drive5.com/usearch/)</li>
+<li>VSEARCH (https://github.com/torognes/vsearch)</li>
+<li>MUSCLE (https://www.drive5.com/muscle/)</li>
+<li>MAFFT (https://mafft.cbrc.jp/alignment/software/)</li>
+<li>RepeatMasker (http://www.repeatmasker.org/)</li>
+<li>Repeatmodeler (https://www.repeatmasker.org/RepeatModeler/)</li>
+<li>Alignment viewer (e.g. JalView, https://www.jalview.org/)</li>
+<li>R (https://www.r-project.org/)
+<ul>
+<li>Required packages: tidyverse, plyranges, BSgenome, optranges</li>
+</ul></li>
+</ul>
+<h3 id="optional-programstools">Optional programs/tools <span id="optional-programs"></span></h3>
+<ul>
+<li>CARP (https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0193588)</li>
+<li>LASTZ (https://www.bx.psu.edu/~rsharris/lastz/)</li>
+<li>SiLiX (http://lbbe.univ-lyon1.fr/-SiLiX-?lang=en)</li>
+<li>Gblocks (https://ls23l.lscore.ucla.edu/MakeTree/documentation/gblocks.html)</li>
+<li>HMMer (http://hmmer.org/)</li>
+<li>FastTree (http://www.microbesonline.org/fasttree/)</li>
+<li>IQ-TREE (http://www.iqtree.org/)</li>
+<li>CD-HIT (http://weizhong-lab.ucsd.edu/cd-hit/)</li>
+</ul>
+<h3 id="for-users">For users <span id="for-users"></span></h3>
+<p>Our methods are implemented in Linux/R and we assume that users will be familiar with the bash shell and R. Some level of familiarity with queuing systems in HPC is also recommended.</p>
+<h2 id="workflows">Workflows</h2>
+<h3 id="a-ab-initio-workflow">A: Ab initio workflow</h3>
+<p>Pipeline A is designed to identify potential horizontally transferred sequences in newly sequenced genomes based on their absence from the genome of a closely related species.</p>
+<p>All input files should be FASTA files. Raw repeats can be from any <em>ab initio</em> software package. Input genomes should be in <code>Pipeline_A/genomes/</code> folder.</p>
+<p><strong><em>Usage</em></strong></p>
+<p>NOTE: Assume you are in <code>Pipeline_A</code> folder to run following scripts.</p>
+<p><strong>0) Ab initio TE annotation using RepeatModeler.</strong></p>
+<p>Run <a href="Pipeline_A/HT_stage_0.sh">HT_stage_0.sh</a></p>
+<div id="cb1" class="sourceCode">
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb1-1" title="1"><span class="va">GENOME=</span><span class="op">&lt;</span><span class="ex">source_genome</span><span class="op">&gt;</span> THREADS=<span class="op">&lt;</span>number of threads to use<span class="op">&gt;</span> bash HT_stage_0.sh </a></code></pre></div>
+</div>
+<p><strong>1) Cluster and perform initial sweep and generate multiple alignments for manual curation of repeats.</strong></p>
+<p>Run <a href="Pipeline_A/HT_stage_1.sh">HT_stage_1.sh</a></p>
+<div id="cb2" class="sourceCode">
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb2-1" title="1"><span class="va">GENOME=</span><span class="op">&lt;</span><span class="ex">source_genome</span><span class="op">&gt;</span> OUTGROUP=<span class="op">&lt;</span>outgroup_genome<span class="op">&gt;</span> QUERY=<span class="op">&lt;</span>file_containing_raw_repeats<span class="op">&gt;</span> THREADS=<span class="op">&lt;</span>number of threads to use<span class="op">&gt;</span> bash HT_stage_1.sh</a></code></pre></div>
+</div>
+<p>This script performs an initial search for sequences which have 2 or more copies in the query genome and are absent from the outgroup genome. If any sequences are absent a multiple sequence alignment will be created for curation.</p>
+<p><strong>2) Manually curate the alignments in Geneious, JalView or the like.</strong></p>
+<p>This is necessary as most <em>ab initio</em> aligners do not capture full repeats, and some families may be classified incorrectly. Additionally, this step can reveal redundant sequences not removed from clustering, e.g. non-autonomous DNA transposons derived from autonomous DNA transposons.</p>
+<p><strong>3) Confirm HTT condidates based on either repeating local alignment finding absence or higher-than-expected-divergence from the genomes of them most closely related species.</strong></p>
+<p>Run <a href="Pipeline_A/HT_stage_2.sh">HT_stage_2.sh</a> with using curated repeats</p>
+<div id="cb3" class="sourceCode">
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb3-1" title="1"><span class="va">GENOME=</span><span class="op">&lt;</span><span class="ex">source_genome</span><span class="op">&gt;</span> SPECIES=<span class="op">&lt;</span>name_of_source_species<span class="op">&gt;</span> OUTGROUP=<span class="op">&lt;</span>outgroup_genome<span class="op">&gt;</span> QUERY=<span class="op">&lt;</span>file_containing_curated_repeats<span class="op">&gt;</span> THREADS=<span class="op">&lt;</span>number of threads to use<span class="op">&gt;</span> bash HT_stage_2.sh</a></code></pre></div>
+</div>
+<p>This script carries out a validation of the initial search using consensus sequences generated from the curation step. This is necessary as fragmented repeats which appeared to be mssing from an outgroup species may in fact be present. For example, when searching with TEs from a seal genome using a mustelid as the outgroup, stage 1 identified 4 L1 fragments which appeared to be absent from the mink. After curation it became clear those L1s were in fact present in the mustelid, just not identifed in the initial sweep, likely due to their truncation/fragmentation. The initial curation step fixes this problem by ensuring that searches of the outgroup genome are done with queries that contain the complete TE of interest.</p>
+<p><strong>4) Local alignment of HTT condidates against all available genomes to identify most closely related sequences and species with no hits.</strong></p>
+<p>Run <a href="Pipeline_A/HT_stage_3.sh">HT_stage_3.sh</a></p>
+<pre><code>bash GENOME=&lt;name_of_source_species&gt; OUTGROUPS=&lt;file_containing_list_of_genomes&gt; QUERY=&lt;file_containing_curated_repeats&gt; THREADS=&lt;number of threads to use&gt; bash HT_stage_2.sh</code></pre>
+<p>This script searches for repeats verified as HTT candidates, searches for them in other species (from a list provided) and creates a MSA of each repeats if identified in a species ready for curation. This script is written to utilise genomes downloaded from Genbank and present in the <code>Pipeline_A/genomes/</code> folder and zipped. If necessary modify this script for your particular situation.</p>
+<p><strong><em>Example usage for Pipeline A</em></strong></p>
+<ul>
+<li><ol type="1">
+<li>run genome_downloader.sh to download all high quality snake and echinoderm genomes from GenBank (requires Entrez Direct)</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>unzip Laticauda colubrina genome to use as source genome and Naja naja genome to use as outgroup</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>run HT_stage_1.sh (example RepeatModeler output of Laticauda colubrina is in the data folder)</li>
+</ol></li>
+<li><ol start="4" type="1">
+<li>manually curate potential HTT candidates</li>
+</ol></li>
+<li><ol start="5" type="1">
+<li>run HT_stage_2.sh using curated HTT candidates</li>
+</ol></li>
+<li><ol start="6" type="1">
+<li>run HT_stage_3.sh to examine other species in which HTT candidates are present in. With the example dataset several Harbingers identified in Laticauda colubrina will also be present in Laticauda laticaudata and various echinoderms</li>
+</ol></li>
+</ul>
+<h3 id="b-workflow-for-global-htt-screening-of-specific-tes">B: Workflow for global HTT screening of specific TEs <span id="workflowB"></span></h3>
+<p>Pipeline B is used for detecting potential horizontal transfer events, starting from a set of curated repeat consensus sequences from available sources (e.g. RepBase or Dfam) for the TE of interest.</p>
+<p>It is a simplified version of the code used to infer horizontal transfer events involving L1 and BovB retrotransposons in eukaryotes (<a href="https://genomebiology.biomedcentral.com/articles/10.1186/s13059-018-1456-7">Ivancevic et al., Genome Biology, 2018</a>).</p>
+<p><strong><em>Usage</em></strong></p>
+<p>NOTE: Assume you are in <code>Pipeline_B</code> to run following scripts.</p>
+<p><strong>0) Download and prepare the genomes you want to screen.</strong></p>
+<p><em>0a) Append species names to the genome name.</em></p>
+<p>As the names given to genome assemblies are not usually informative, you will want to append species names to the genome names.</p>
+<p>Run <a href="Pipeline_B/0a_rename_genome.sh">0a_rename_genome.sh</a>.</p>
+<p>Example usage:</p>
+<div id="cb5" class="sourceCode">
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb5-1" title="1"><span class="va">GENOME=</span><span class="op">&lt;</span><span class="ex">source_genome</span><span class="op">&gt;</span> SPECIES=<span class="op">&lt;</span>species_name<span class="op">&gt;</span> bash 0a_rename_genome.sh</a></code></pre></div>
+</div>
+<p><em>0b) Make each genome a BLAST database and create indexes.</em></p>
+<p>Run <a href="Pipeline_B/0b_make_database_and_index.sh">0b_make_database_and_index.sh</a>.</p>
+<p>Example usage:</p>
+<div id="cb6" class="sourceCode">
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb6-1" title="1"><span class="fu">bash</span> 0b_make_database_and_index.sh</a></code></pre></div>
+</div>
+<p><strong>1) BLAST TE of interest against all available genomes.</strong></p>
+<p><em>1a) Use TBLASTN with protein sequence queries.</em></p>
+<p>This will identify similar TEs in distantly related species. Output will be nucleotide sequences.</p>
+<p>Run <a href="Pipeline_B/1a_tblastn_and_extract.sbatch">1a_tblastn_and_extract.sbatch</a>.</p>
+<p>Example usage:</p>
+<div id="cb7" class="sourceCode">
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb7-1" title="1"><span class="va">DIR=</span>test_genome <span class="va">DATABASE=</span>YarrowiaLipolytica_ASM252v1.fa <span class="va">QUERY=</span>L1_ORFp.fasta <span class="va">RESULTSDIR=</span>results <span class="ex">sbatch</span> 1a_tblastn_and_extract.sbatch</a></code></pre></div>
+</div>
+<p><em>1b) (Optional) Use BLASTN or LASTZ with nucleotide sequence queries.</em></p>
+<p>Run <a href="Pipeline_B/1b_lastz_and_extract.sbatch">1b_lastz_and_extract.sbatch</a>.</p>
+<p>Example usage:</p>
+<div id="cb8" class="sourceCode">
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb8-1" title="1"><span class="va">GENOMEDIR=</span>test_genome <span class="va">GENOME=</span>YarrowiaLipolytica_ASM252v1.fa <span class="va">QUERYDIR=</span>test_query <span class="va">QUERY=</span>L1_nucl_seqs.fasta <span class="va">RESULTSDIR=</span>results <span class="ex">sbatch</span> 1b_lastz_and_extract.sbatch</a></code></pre></div>
+</div>
+<p><em>1c) For each genome, combine all identified nucleotide sequences from the previous steps.</em></p>
+<p>Run <a href="Pipeline_B/1c_combine_hits.sbatch">1c_combine_hits.sbatch</a>.</p>
+<p>Example usage:</p>
+<div id="cb9" class="sourceCode">
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb9-1" title="1"><span class="va">SPECIES=</span>YarrowiaLipolytica <span class="va">ELEMENT=</span>L1 <span class="va">LASTZFILE=</span>YarrowiaLipolytica_ASM252v1.fa_L1_nucl_seqs.fasta_lastz.bed <span class="va">TBLASTNFILE=</span>YarrowiaLipolytica_ASM252v1.fa_L1_ORFp.fasta_merged.bed <span class="va">GENOME=</span>YarrowiaLipolytica_ASM252v1.fa <span class="va">RESULTSDIR=</span>results <span class="ex">sbatch</span> 1c_combine_hits.sbatch</a></code></pre></div>
+</div>
+<p><em>1d) Add header annotations to indicate the genome that each sequence was derived from.</em></p>
+<p>Run <a href="Pipeline_B/1d_append_name_to_headers.sh">1d_append_name_to_headers.sh</a>.</p>
+<p>Example usage:</p>
+<div id="cb10" class="sourceCode">
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb10-1" title="1"><span class="va">SPECIES=</span>YarrowiaLipolytica <span class="va">ELEMENT=</span>L1 <span class="va">RESULTSDIR=</span>results <span class="fu">bash</span> 1d_append_name_to_headers.sh</a></code></pre></div>
+</div>
+<p>Repeat screening in an iterative process (e.g. BLAST-ing the new, larger, query dataset against each genome and then combining the output) until no new hits are found.</p>
+<p><strong>2) Perform a reciprocal best hit check.</strong></p>
+<p><em>2a) Use CENSOR to compare hits against known repeat databases (e.g. RepBase or Dfam).</em></p>
+<p>Run <a href="Pipeline_B/2a_censor_sequences.sbatch">2a_censor_sequences.sbatch</a>.</p>
+<p>Example usage:</p>
+<div id="cb11" class="sourceCode">
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb11-1" title="1"><span class="va">INDIR=</span>results <span class="va">FILE=</span>YarrowiaLipolytica_L1_combined.fasta <span class="va">OUTDIR=</span>results/censored <span class="ex">sbatch</span> 2a_censor_sequences.sbatch</a></code></pre></div>
+</div>
+<p><em>2b) Confirm and extract hits that match the correct TE family.</em></p>
+<p>Run <a href="Pipeline_B/2b_check_censor_output.sbatch">2b_check_censor_output.sbatch</a>.</p>
+<p>Example usage:</p>
+<div id="cb12" class="sourceCode">
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb12-1" title="1"><span class="va">SPECIES=</span>Yarrowia.lipolytica <span class="va">FILE=</span>Yarrowia.lipolytica_L1_combined.fasta <span class="va">GENOME=</span>test_genome/YarrowiaLipolytica_ASM252v1.fa <span class="va">ELEMENT=</span>L1 <span class="va">QUERY=</span>test_query/known_L1_elements_from_repbase.txt <span class="va">CENSORDIR=</span>results/censored <span class="ex">sbatch</span> 2b_check_censor_output.sbatch</a></code></pre></div>
+</div>
+<p><strong>3) Cluster all sequences obtained from the iterative alignment screening.</strong></p>
+<p>Prior to this step, you will need to combine hits from all genomes into one file. Make sure that sequence headers indicate the species that each TE sequence was derived from.</p>
+<p>This clustering step is important as it will reveal likely HTT events which are manifested as clusters of highly similar elements that include elements from multiple species. We have found it best to use sequence divergence cut offs that cluster most closely related sequences (e.g. &lt;20% divergent).</p>
+<p><em>3a) All-against-all clustering of nucleotide sequences using VSEARCH.</em></p>
+<p>You can use full-length nucleotide sequences, or nucleotide sequences of the open reading frames only.</p>
+<p>Run <a href="Pipeline_B/3a_vsearch_cluster_for_nucleotide_seqs.sbatch">3a_vsearch_cluster_for_nucleotide_seqs.sbatch</a>, changing the clustering identity threshold (ID) as required.</p>
+<p>Example usage:</p>
+<div id="cb13" class="sourceCode">
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb13-1" title="1"><span class="va">INDIR=</span>results/allSpeciesCombined <span class="va">FILE=</span>allSpecies_L1.fasta <span class="va">ID=</span>80 <span class="va">PREFIX=</span>c <span class="ex">sbatch</span> 3a_vsearch_cluster_for_nucleotide_seqs.sbatch</a></code></pre></div>
+</div>
+<p><em>3b) All-against-all clustering of amino acid sequences using USEARCH.</em></p>
+<p>VSEARCH (the open source alternative to USEARCH) does not support protein sequences, but will not fail if given protein sequence input. Make sure you use another program (e.g. Cd-hit or USEARCH) to clustering amino acid sequences. The 32-bit version of USEARCH is open source.</p>
+<p>The following script can be used to perform all-against-all cluserting of amino acid sequences from ORFs, or reverse transcriptase domains from retrotransposons/transposase domains from DNA transposons.</p>
+<p>Run <a href="Pipeline_B/3b_usearch_cluster_for_aa_seqs.sbatch">3b_usearch_cluster_for_aa_seqs.sbatch</a>.</p>
+<p>Example usage:</p>
+<div id="cb14" class="sourceCode">
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb14-1" title="1"><span class="va">INDIR=</span>results/allSpeciesCombined <span class="va">FILE=</span>allSpecies_L1_ORFp.fasta <span class="va">ID=</span>90 <span class="va">PREFIX=</span>r <span class="ex">sbatch</span> 3b_usearch_cluster_for_aa_seqs.sbatch</a></code></pre></div>
+</div>
+<p><strong>4) Identify clusters containing TE sequences from multiple species (e.g. based on the sequence header names).</strong></p>
+<p>These clusters are the HTT candidates.</p>
+<p><strong><em>Test dataset for Pipeline B</em></strong></p>
+<p>A test genome (fungus <em>Yarrowia lipolytica</em>) has been placed in <a href="Pipeline_B/test_genome">test_genome</a>, along with a set of L1 repeats as a <a href="Pipeline_B/test_query">test_query</a>. We recommend trying out the workflow using these files first.</p>
+<h3 id="c-htt-candidates-validation">C: HTT candidates validation <span id="workflowC"></span></h3>
+<p>Pipeline C includes several additional steps to validate detected HTT candidates from Pipeline A or Pipeline B. Manually checking will be required in this section.</p>
+<p><strong><em>Usage</em></strong></p>
+<p>NOTE: Assume you are in <code>Pipeline_C</code> folder to run these following scripts.</p>
+<p><strong>1) Presence/absence analysis based on flanking regions.</strong></p>
+<p>Extend individual TE insertions with 1-2kb of flanking sequence and align those sequences to the genomes of related/target species. Use the coordinates from these alignments to find the ends of the target sequences and extract those sequences from the target genomes. The query and target sequences are then globally aligned (MAFFT/MUSCLE) to determine presence/absence compared to ancestral insertions in related taxa (Manually checking in aligment viewer will be required).</p>
+<p><strong>2) Generate and cluster species-specific sub-clusters using VSEARCH or USEARCH, and align all sub-clusters to create consensus sequences, or identify centroids.</strong></p>
+<p>Run <a href="Pipeline_C/2_usearchConsensus.sbatch">2_usearchConsensus.sbatch</a></p>
+<p>Example usage (please modify job settings according to your HPC environment):</p>
+<div id="cb15" class="sourceCode">
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb15-1" title="1"><span class="va">INDIR=</span>results <span class="va">FILE=</span>HTT_condidates.fasta <span class="va">ID=</span>80 <span class="ex">sbatch</span> 2_usearchConsensus.sbatch</a></code></pre></div>
+</div>
+<p><strong>3) Align all consensus sequences/centroids to generate a sequence phylogeny.</strong></p>
+<p>Global multisequence alignment of representative sequences to generate a phylogenetic tree of HTT candidate sequences. This phylogenetic distribution of representative sequences can be compared to the species phylogeny to see if it is discordant.</p>
+<p>Run <a href="Pipeline_C/3_alignRefineAndTree.sbatch">3_alignRefineAndTree.sbatch</a></p>
+<p>Example usage (please modify job settings according to your HPC environment):</p>
+<div id="cb16" class="sourceCode">
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><a class="sourceLine" id="cb16-1" title="1"><span class="va">INDIR=</span>results <span class="va">FILE=</span>HTT_condidates_centroids.fasta <span class="va">MINBLOCKSIZE=</span>5 <span class="va">ALLOWEDGAPS=</span>a <span class="ex">sbatch</span> 3_alignRefineAndTree.sbatch</a></code></pre></div>
+</div>
+<p><strong>4) Further analysis</strong></p>
+<p>Divergence analysis of HTT candidate clusters to determine activity profile and ensure that this profile is consistent with transfer from the most closely related TE from another species. Additional/alternative methods might include: - using a k-mer based method (e.g Jellyfish) to compare k-mers within TE sequences. Provides an alignment-free alternative for detecting similarities in TEs across species. - using intact ORFs to determine how recently TEs in different species were likely active, to estimate the timing of potential HTT events. - BLAST-ing sequences from HTT candidate clusters against all eukaryotes on NCBI (not just your database of genomes) to identify potential vector/source species.</p>
+<h2 id="additional-notes">Additional notes <span id="notes"></span></h2>
+<ul>
+<li><ol type="1">
+<li>Software based TE annotation must be manually curated prior to analysis, as no software tool is guaranteed to find full length TEs, or find all full length TEs.</li>
+</ol></li>
+<li><ol start="2" type="1">
+<li>For TEs with two open reading frames, concatenating ORF1 and ORF2 sequences before running TBLASTN may give the best results.</li>
+</ol></li>
+<li><ol start="3" type="1">
+<li>We recommend using a combination of TBLASTN (protein sequence input, e.g. TE ORFs) and BLASTN (nucleotide sequence input, e.g. full-length TE) for identifying horizontally transferred TEs in a wide range of genomes. If only using one method, TBLASTN should be prioritised, especially when looking for TEs of the same family in distantly related species. Nucleotide queries (e.g. with BLASTN) may fail to identify TEs that have had longer to mutate/diverge.</li>
+</ol></li>
+<li><ol start="4" type="1">
+<li>VSEARCH (the open source alternative to USEARCH) does not support protein sequences, but will not fail if given protein sequence input. Make sure to use another program (e.g. Cd-hit or USEARCH) for clustering of amino acid sequences. The 32-bit version of USEARCH is open source.</li>
+</ol></li>
+<li><ol start="5" type="1">
+<li>Confirmation of presence/absence is only practical for small numbers of HTT events that can be evaluated by eye.</li>
+</ol></li>
+<li><ol start="6" type="1">
+<li>Alignment viewers such as JalView can also perform principal component analysis (PCA) of all sequences in a multiple sequence alignment, where each dot represents an individual TE sequence, and dots can be coloured by species. This allows easy visualisation of HTT clusters containing highly similar sequences from different species.</li>
+</ol></li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li><p>Galbraith JD, Ludington AJ, Suh A, Sanders KL, Adelson DL. New Environment, New Invaders-Repeated Horizontal Transfer of LINEs to Sea Snakes. Genome Biol Evol. 2020;12:2370–83.</p></li>
+<li><p>Galbraith JD, Ludington AJ, Sanders KL, Suh A, Adelson DL. Horizontal transfer and subsequent explosive expansion of a DNA transposon in sea kraits (Laticauda). Biol Lett. 2021;17:20210342.</p></li>
+<li><p>Ivancevic AM, Kortschak RD, Bertozzi T, Adelson DL. Horizontal transfer of BovB and L1 retrotransposons in eukaryotes. Genome Biol. 2018;19:85.</p></li>
+<li><p>Atma M Ivancevic. (2018, May 15). AdelaideBioinfo/horizontalTransfer: First release of horizontal transfer code (Version v1.0.0). Zenodo. http://doi.org/10.5281/zenodo.1246999</p></li>
+<li><p>Ivancevic, Atma M, Kortschak, R Daniel, Bertozzi, Terry, &amp; Adelson, David L. (2018). Dataset from: Horizontal transfer of BovB and L1 retrotransposons in eukaryotes [Data set]. Zenodo. http://doi.org/10.5281/zenodo.1246946</p></li>
+</ul>
+<h2 id="the-end">The end <span id="the-end"></span></h2>
+<p>In the words of George Box, “Essentially, all models are wrong, but some are useful”.</p>

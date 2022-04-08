@@ -1,263 +1,516 @@
-# Eukaryotic Horizontal Transfer
+Detecting Horizontal Transfer of Transposons (HTT)
+==================================================
 
-Code used to infer and filter horizontal transfer events involving L1 and BovB retrotransposons in eukaryotes. 
+Table of Contents
+-----------------
 
-Also available on Zenodo:
+-   [Introduction](#introduction)
+-   [Prerequisites](#prerequisites)
+    -   [Recommended programs/tools](#recommended-programs)
+    -   [Optional programs/tools](#optional-programs)
+    -   [For users](#for-users)
+-   [Workflows](#workflows)
+    -   [A: Ab initio workflow](#workflowA)
+    -   [B: Workflow for global HTT screening of specific
+        TEs](#workflowB)
+    -   [C: HTT candidates validation](#workflowC)
+-   [Additional notes](#notes)
+-   [References](#references)
+-   [The end](#the-end)
 
-- Atma M Ivancevic. (2018, May 15). AdelaideBioinfo/horizontalTransfer: First release of horizontal transfer code (Version v1.0.0). Zenodo. http://doi.org/10.5281/zenodo.1246999
+Introduction
+------------
 
-- Ivancevic, Atma M, Kortschak, R Daniel, Bertozzi, Terry, & Adelson, David L. (2018). Dataset from: Horizontal transfer of BovB and L1 retrotransposons in eukaryotes [Data set]. Zenodo. http://doi.org/10.5281/zenodo.1246946
+The specific steps for the identification of HTT events are typically
+applied to two scenarios with distinct workflows (A and B in Figure 1)
+that converge at the stage where HTT candidates are validated (C in
+Figure 1). Workflows A, B and C are described below, with numbered steps
+in each section that link back to Figure 1.
 
-#### Recommended programs
-- BLAST (https://blast.ncbi.nlm.nih.gov/Blast.cgi)
-- SAMtools (http://www.htslib.org/)
-- BEDtools (http://bedtools.readthedocs.io/en/latest/)
-- CENSOR, which requires wu-blast and bioperl (https://girinst.org/downloads/software/censor/)
-- USEARCH (https://www.drive5.com/usearch/)
-- VSEARCH (https://github.com/torognes/vsearch)
-- MUSCLE (https://www.drive5.com/muscle/)
+![Figure 1, The HTT detection
+flowchart](HTT_detection_workflow.png){width="800"}
 
-#### Optional
-- LASTZ (https://www.bx.psu.edu/~rsharris/lastz/)
-- SiLiX (http://lbbe.univ-lyon1.fr/-SiLiX-?lang=en)
-- RepeatMasker (http://www.repeatmasker.org/)
-- Gblocks (https://ls23l.lscore.ucla.edu/MakeTree/documentation/gblocks.html)
-- HMMer (http://hmmer.org/)
-- FastTree (http://www.microbesonline.org/fasttree/)
+Prerequisites
+-------------
 
-#### Prerequisites
-- Some level of familiarity with computers and queuing systems (SLURM)
+### Recommended programs/tools []{#recommended-programs}
 
-#### Scripts and test genome
-A test genome (fungus *Yarrowia lipolytica*) has been placed in [genomes/fungi/Yarrowia.lipolytica](genomes/fungi/Yarrowia.lipolytica). We recommend trying out the workflow below on this genome first. Intermediate files for each step can be found in [results/L1](results/L1), to help with troubleshooting. Analysis scripts are provided in [scripts](scripts). LaTeX files for the Additional Files (Supp Tables and Figures) are provided in [latex](latex).
+-   BLAST (https://blast.ncbi.nlm.nih.gov/Blast.cgi)
+-   SAMtools (http://www.htslib.org/)
+-   BEDtools (http://bedtools.readthedocs.io/en/latest/)
+-   CENSOR, which requires wu-blast and bioperl
+    (https://girinst.org/downloads/software/censor/)
+-   USEARCH (https://www.drive5.com/usearch/)
+-   VSEARCH (https://github.com/torognes/vsearch)
+-   MUSCLE (https://www.drive5.com/muscle/)
+-   MAFFT (https://mafft.cbrc.jp/alignment/software/)
+-   RepeatMasker (http://www.repeatmasker.org/)
+-   Repeatmodeler (https://www.repeatmasker.org/RepeatModeler/)
+-   Alignment viewer (e.g. JalView, https://www.jalview.org/)
+-   R (https://www.r-project.org/)
+    -   Required packages: tidyverse, plyranges, BSgenome, optranges
 
-## Workflow
+### Optional programs/tools []{#optional-programs}
 
-### 1) Extraction of L1 and BovB retrotransposons from genome data
+-   CARP
+    (https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0193588)
+-   LASTZ (https://www.bx.psu.edu/\~rsharris/lastz/)
+-   SiLiX (http://lbbe.univ-lyon1.fr/-SiLiX-?lang=en)
+-   Gblocks
+    (https://ls23l.lscore.ucla.edu/MakeTree/documentation/gblocks.html)
+-   HMMer (http://hmmer.org/)
+-   FastTree (http://www.microbesonline.org/fasttree/)
+-   IQ-TREE (http://www.iqtree.org/)
+-   CD-HIT (http://weizhong-lab.ucsd.edu/cd-hit/)
 
-#### 1a) Download or acquire genomes of interest
-755 genomes were downloaded from public databases (UCSC and NCBI); four more were acquired from collaborators. All genomes were downloaded using ```wget```, as recommended by NCBI (https://www.ncbi.nlm.nih.gov/genome/doc/ftpfaq/). See Supplementary Table 1 for the source and assembly version of each genome used.
+### For users []{#for-users}
 
-#### 1b) Append species name to each genome fasta file
-This will save you a lot of headaches later on. Most genomes are given useless names like GCF_000002525.2_ASM252v1_genomic.fna.
-Use [renameGenome.q](scripts/renameGenome.q). 
+Our methods are implemented in Linux/R and we assume that users will be
+familiar with the bash shell and R. Some level of familiarity with
+queuing systems in HPC is also recommended.
 
-For example, to rename fungal genome *Yarrowia lipolytica*:
+Workflows
+---------
+
+### A: Ab initio workflow
+
+Pipeline A is designed to identify potential horizontally transferred
+sequences in newly sequenced genomes based on their absence from the
+genome of a closely related species.
+
+All input files should be FASTA files. Raw repeats can be from any *ab
+initio* software package. Input genomes should be in
+`Pipeline_A/genomes/` folder.
+
+***Usage***
+
+NOTE: Assume you are in `Pipeline_A` folder to run following scripts.
+
+**0) Ab initio TE annotation using RepeatModeler.**
+
+Run [HT\_stage\_0.sh](Pipeline_A/HT_stage_0.sh)
+
+::: {#cb1 .sourceCode}
+``` {.sourceCode .bash}
+GENOME=<source_genome> THREADS=<number of threads to use> bash HT_stage_0.sh 
 ```
-GROUP=fungi SPECIES=Yarrowia.lipolytica GENOME=GCF_000002525.2_ASM252v1_genomic.fna sbatch renameGenome.q
+:::
+
+**1) Cluster and perform initial sweep and generate multiple alignments
+for manual curation of repeats.**
+
+Run [HT\_stage\_1.sh](Pipeline_A/HT_stage_1.sh)
+
+::: {#cb2 .sourceCode}
+``` {.sourceCode .bash}
+GENOME=<source_genome> OUTGROUP=<outgroup_genome> QUERY=<file_containing_raw_repeats> THREADS=<number of threads to use> bash HT_stage_1.sh
 ```
+:::
 
-#### 1c) Make each genome a BLAST database and create index file
-See [makeDatabaseAndIndex.q](scripts/makeDatabaseAndIndex.q). General commands are:
+This script performs an initial search for sequences which have 2 or
+more copies in the query genome and are absent from the outgroup genome.
+If any sequences are absent a multiple sequence alignment will be
+created for curation.
+
+**2) Manually curate the alignments in Geneious, JalView or the like.**
+
+This is necessary as most *ab initio* aligners do not capture full
+repeats, and some families may be classified incorrectly. Additionally,
+this step can reveal redundant sequences not removed from clustering,
+e.g. non-autonomous DNA transposons derived from autonomous DNA
+transposons.
+
+**3) Confirm HTT condidates based on either repeating local alignment
+finding absence or higher-than-expected-divergence from the genomes of
+them most closely related species.**
+
+Run [HT\_stage\_2.sh](Pipeline_A/HT_stage_2.sh) with using curated
+repeats
+
+::: {#cb3 .sourceCode}
+``` {.sourceCode .bash}
+GENOME=<source_genome> SPECIES=<name_of_source_species> OUTGROUP=<outgroup_genome> QUERY=<file_containing_curated_repeats> THREADS=<number of threads to use> bash HT_stage_2.sh
 ```
-makeblastdb -in genome.fna -parse_seqids -dbtype nucl
+:::
 
-samtools faidx genome.fna
+This script carries out a validation of the initial search using
+consensus sequences generated from the curation step. This is necessary
+as fragmented repeats which appeared to be mssing from an outgroup
+species may in fact be present. For example, when searching with TEs
+from a seal genome using a mustelid as the outgroup, stage 1 identified
+4 L1 fragments which appeared to be absent from the mink. After curation
+it became clear those L1s were in fact present in the mustelid, just not
+identifed in the initial sweep, likely due to their
+truncation/fragmentation. The initial curation step fixes this problem
+by ensuring that searches of the outgroup genome are done with queries
+that contain the complete TE of interest.
+
+**4) Local alignment of HTT condidates against all available genomes to
+identify most closely related sequences and species with no hits.**
+
+Run [HT\_stage\_3.sh](Pipeline_A/HT_stage_3.sh)
+
+    bash GENOME=<name_of_source_species> OUTGROUPS=<file_containing_list_of_genomes> QUERY=<file_containing_curated_repeats> THREADS=<number of threads to use> bash HT_stage_2.sh
+
+This script searches for repeats verified as HTT candidates, searches
+for them in other species (from a list provided) and creates a MSA of
+each repeats if identified in a species ready for curation. This script
+is written to utilise genomes downloaded from Genbank and present in the
+`Pipeline_A/genomes/` folder and zipped. If necessary modify this script
+for your particular situation.
+
+***Example usage for Pipeline A***
+
+-   1.  run genome\_downloader.sh to download all high quality snake and
+        echinoderm genomes from GenBank (requires Entrez Direct)
+
+-   2.  unzip Laticauda colubrina genome to use as source genome and
+        Naja naja genome to use as outgroup
+
+-   3.  run HT\_stage\_1.sh (example RepeatModeler output of Laticauda
+        colubrina is in the data folder)
+
+-   4.  manually curate potential HTT candidates
+
+-   5.  run HT\_stage\_2.sh using curated HTT candidates
+
+-   6.  run HT\_stage\_3.sh to examine other species in which HTT
+        candidates are present in. With the example dataset several
+        Harbingers identified in Laticauda colubrina will also be
+        present in Laticauda laticaudata and various echinoderms
+
+### B: Workflow for global HTT screening of specific TEs []{#workflowB}
+
+Pipeline B is used for detecting potential horizontal transfer events,
+starting from a set of curated repeat consensus sequences from available
+sources (e.g. RepBase or Dfam) for the TE of interest.
+
+It is a simplified version of the code used to infer horizontal transfer
+events involving L1 and BovB retrotransposons in eukaryotes ([Ivancevic
+et al., Genome Biology,
+2018](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-018-1456-7)).
+
+***Usage***
+
+NOTE: Assume you are in `Pipeline_B` to run following scripts.
+
+**0) Download and prepare the genomes you want to screen.**
+
+*0a) Append species names to the genome name.*
+
+As the names given to genome assemblies are not usually informative, you
+will want to append species names to the genome names.
+
+Run [0a\_rename\_genome.sh](Pipeline_B/0a_rename_genome.sh).
+
+Example usage:
+
+::: {#cb5 .sourceCode}
+``` {.sourceCode .bash}
+GENOME=<source_genome> SPECIES=<species_name> bash 0a_rename_genome.sh
 ```
+:::
 
-#### 1d) Find TEs using TBLASTN with protein queries
-[tblastnAndExtract.q](scripts/tblastnAndExtract.q) will run tblastn to find protein matches, then extract the corresponding nucleotide sequences from the genome. 
-- DIR is the directory where your genome is stored.
-- DATABASE is the name of your genome file (which we used to create a BLAST database).
-- QUERY is the file containing the protein sequences you're searching for (e.g. [L1_ORFp.fasta](queries/L1_ORFp.fasta) or [BovB_ORFp.fasta](queries/BovB_ORFp.fasta)).
-- RESULTSDIR is your specified output directory.
+*0b) Make each genome a BLAST database and create indexes.*
 
-For example, to run [tblastnAndExtract.q](scripts/tblastnAndExtract.q) on fungal genome *Yarrowia lipolytica* with L1 queries:
+Run
+[0b\_make\_database\_and\_index.sh](Pipeline_B/0b_make_database_and_index.sh).
+
+Example usage:
+
+::: {#cb6 .sourceCode}
+``` {.sourceCode .bash}
+bash 0b_make_database_and_index.sh
 ```
-DIR=/data/rc003/atma/horizontalTransfer/genomes/fungi/Yarrowia.lipolytica DATABASE=Yarrowia.lipolytica_GCF_000002525.2_ASM252v1_genomic.fna QUERY=L1_ORFp.fasta RESULTSDIR=/data/rc003/atma/horizontalTransfer/results/L1/tblastned sbatch tblastnAndExtract.q
+:::
+
+**1) BLAST TE of interest against all available genomes.**
+
+*1a) Use TBLASTN with protein sequence queries.*
+
+This will identify similar TEs in distantly related species. Output will
+be nucleotide sequences.
+
+Run
+[1a\_tblastn\_and\_extract.sbatch](Pipeline_B/1a_tblastn_and_extract.sbatch).
+
+Example usage:
+
+::: {#cb7 .sourceCode}
+``` {.sourceCode .bash}
+DIR=test_genome DATABASE=YarrowiaLipolytica_ASM252v1.fa QUERY=L1_ORFp.fasta RESULTSDIR=results sbatch 1a_tblastn_and_extract.sbatch
 ```
-Adjust memory and cores as necessary for each genome. Mammalian genomes need a bit more oomph, use:
+:::
+
+*1b) (Optional) Use BLASTN or LASTZ with nucleotide sequence queries.*
+
+Run
+[1b\_lastz\_and\_extract.sbatch](Pipeline_B/1b_lastz_and_extract.sbatch).
+
+Example usage:
+
+::: {#cb8 .sourceCode}
+``` {.sourceCode .bash}
+GENOMEDIR=test_genome GENOME=YarrowiaLipolytica_ASM252v1.fa QUERYDIR=test_query QUERY=L1_nucl_seqs.fasta RESULTSDIR=results sbatch 1b_lastz_and_extract.sbatch
 ```
-#SBATCH -p batch
-#SBATCH -N 1 
-#SBATCH -n 8
-#SBATCH --time=3-00:00 
-#SBATCH --mem=32GB 
+:::
+
+*1c) For each genome, combine all identified nucleotide sequences from
+the previous steps.*
+
+Run [1c\_combine\_hits.sbatch](Pipeline_B/1c_combine_hits.sbatch).
+
+Example usage:
+
+::: {#cb9 .sourceCode}
+``` {.sourceCode .bash}
+SPECIES=YarrowiaLipolytica ELEMENT=L1 LASTZFILE=YarrowiaLipolytica_ASM252v1.fa_L1_nucl_seqs.fasta_lastz.bed TBLASTNFILE=YarrowiaLipolytica_ASM252v1.fa_L1_ORFp.fasta_merged.bed GENOME=YarrowiaLipolytica_ASM252v1.fa RESULTSDIR=results sbatch 1c_combine_hits.sbatch
 ```
+:::
 
-#### 1e) OPTIONAL Find TEs using LASTZ with nucleotide queries
-[lastzAndExtract.q](scripts/lastzAndExtract.q) will run LASTZ to find nucleotide matches, then extract the corresponding nucleotide TE (L1 or BovB) sequences from the genome. 
-- GENOMEDIR is the directory where your genome is stored.
-- GENOME is the name of your genome
-- QUERYDIR is the directory containing your query file (e.g. L1 nucleotide sequences)
-- QUERY is your query file (e.g. L1 nucleotide sequences)
-- RESULTSDIR is your specified output directory
+*1d) Add header annotations to indicate the genome that each sequence
+was derived from.*
 
-E.g. to run [lastzAndExtract.q](scripts/lastzAndExtract.q) on fungal genome *Yarrowia lipolytica* using the L1 queries found above with TBLASTN:
+Run
+[1d\_append\_name\_to\_headers.sh](Pipeline_B/1d_append_name_to_headers.sh).
+
+Example usage:
+
+::: {#cb10 .sourceCode}
+``` {.sourceCode .bash}
+SPECIES=YarrowiaLipolytica ELEMENT=L1 RESULTSDIR=results bash 1d_append_name_to_headers.sh
 ```
-GENOMEDIR=/data/rc003/atma/horizontalTransfer/genomes/fungi/Yarrowia.lipolytica GENOME=Yarrowia.lipolytica_GCF_000002525.2_ASM252v1_genomic.fna QUERYDIR=/data/rc003/atma/horizontalTransfer/results/L1/tblastned QUERY=Yarrowia.lipolytica_GCF_000002525.2_ASM252v1_genomic.fna_L1_ORFp.fasta_nucl_seqs.fasta RESULTSDIR=/data/rc003/atma/horizontalTransfer/results/L1/lastzed sbatch lastzAndExtract.q
+:::
+
+Repeat screening in an iterative process (e.g. BLAST-ing the new,
+larger, query dataset against each genome and then combining the output)
+until no new hits are found.
+
+**2) Perform a reciprocal best hit check.**
+
+*2a) Use CENSOR to compare hits against known repeat databases
+(e.g. RepBase or Dfam).*
+
+Run
+[2a\_censor\_sequences.sbatch](Pipeline_B/2a_censor_sequences.sbatch).
+
+Example usage:
+
+::: {#cb11 .sourceCode}
+``` {.sourceCode .bash}
+INDIR=results FILE=YarrowiaLipolytica_L1_combined.fasta OUTDIR=results/censored sbatch 2a_censor_sequences.sbatch
 ```
-Large genomes (e.g. mammals) need to be split into smaller files before being passed through LASTZ.
+:::
 
-**Note: we will probably stop using LASTZ for future analyses because we have not noticed a significant increase in true TE hits, even when used iteratively. This step is optional.** 
+*2b) Confirm and extract hits that match the correct TE family.*
 
-#### 1f) Combine LASTZ and TBLASTN hits
-Use [combineHits.q](scripts/combineHits.q) to combine LASTZ and TBLASTN hits, for further checking. 
+Run
+[2b\_check\_censor\_output.sbatch](Pipeline_B/2b_check_censor_output.sbatch).
 
-E.g. to combine all L1 hits for genome *Yarrowia lipolytica*:
+Example usage:
+
+::: {#cb12 .sourceCode}
+``` {.sourceCode .bash}
+SPECIES=Yarrowia.lipolytica FILE=Yarrowia.lipolytica_L1_combined.fasta GENOME=test_genome/YarrowiaLipolytica_ASM252v1.fa ELEMENT=L1 QUERY=test_query/known_L1_elements_from_repbase.txt CENSORDIR=results/censored sbatch 2b_check_censor_output.sbatch
 ```
-SPECIES=Yarrowia.lipolytica ELEMENT=L1 LASTZFILE=/data/rc003/atma/horizontalTransfer/results/L1/lastzed/Yarrowia.lipolytica_GCF_000002525.2_ASM252v1_genomic.fna_Yarrowia.lipolytica_GCF_000002525.2_ASM252v1_genomic.fna_L1_ORFp.fasta_nucl_seqs.fasta_lastz.bed TBLASTNFILE=/data/rc003/atma/horizontalTransfer/results/L1/tblastned/Yarrowia.lipolytica_GCF_000002525.2_ASM252v1_genomic.fna_L1_ORFp.fasta_merged.bed GENOME=/data/rc003/atma/horizontalTransfer/genomes/fungi/Yarrowia.lipolytica/Yarrowia.lipolytica_GCF_000002525.2_ASM252v1_genomic.fna RESULTSDIR=/data/rc003/atma/horizontalTransfer/results/L1/combined sbatch combineHits.q
+:::
+
+**3) Cluster all sequences obtained from the iterative alignment
+screening.**
+
+Prior to this step, you will need to combine hits from all genomes into
+one file. Make sure that sequence headers indicate the species that each
+TE sequence was derived from.
+
+This clustering step is important as it will reveal likely HTT events
+which are manifested as clusters of highly similar elements that include
+elements from multiple species. We have found it best to use sequence
+divergence cut offs that cluster most closely related sequences
+(e.g. \<20% divergent).
+
+*3a) All-against-all clustering of nucleotide sequences using VSEARCH.*
+
+You can use full-length nucleotide sequences, or nucleotide sequences of
+the open reading frames only.
+
+Run
+[3a\_vsearch\_cluster\_for\_nucleotide\_seqs.sbatch](Pipeline_B/3a_vsearch_cluster_for_nucleotide_seqs.sbatch),
+changing the clustering identity threshold (ID) as required.
+
+Example usage:
+
+::: {#cb13 .sourceCode}
+``` {.sourceCode .bash}
+INDIR=results/allSpeciesCombined FILE=allSpecies_L1.fasta ID=80 PREFIX=c sbatch 3a_vsearch_cluster_for_nucleotide_seqs.sbatch
 ```
+:::
 
-#### 1g) Use CENSOR to categorise all extracted nucleotide sequences
-[censorSequences.q](scripts/censorSequences.q) will use CENSOR to check sequences against the RepBase library of known repeat sequences. We want to see if our "L1 hits" are truly L1s, as deemed by CENSOR, and if our "BovB hits" are truly BovBs. Sometimes, other repeats are picked up instead.
-- DIR is the directory where you put your combined tblastn+lastz results
-- FILE is the combined fasta file
-- RESULTSDIR is the directory that you want the CENSOR output to go in
+*3b) All-against-all clustering of amino acid sequences using USEARCH.*
 
-E.g. to run CENSOR on all L1 hits from fungal genome *Yarrowia lipolytica*:
+VSEARCH (the open source alternative to USEARCH) does not support
+protein sequences, but will not fail if given protein sequence input.
+Make sure you use another program (e.g. Cd-hit or USEARCH) to clustering
+amino acid sequences. The 32-bit version of USEARCH is open source.
+
+The following script can be used to perform all-against-all cluserting
+of amino acid sequences from ORFs, or reverse transcriptase domains from
+retrotransposons/transposase domains from DNA transposons.
+
+Run
+[3b\_usearch\_cluster\_for\_aa\_seqs.sbatch](Pipeline_B/3b_usearch_cluster_for_aa_seqs.sbatch).
+
+Example usage:
+
+::: {#cb14 .sourceCode}
+``` {.sourceCode .bash}
+INDIR=results/allSpeciesCombined FILE=allSpecies_L1_ORFp.fasta ID=90 PREFIX=r sbatch 3b_usearch_cluster_for_aa_seqs.sbatch
 ```
-DIR=/data/rc003/atma/horizontalTransfer/results/L1/combined FILE=Yarrowia.lipolytica_L1_combined.fasta RESULTSDIR=/data/rc003/atma/horizontalTransfer/results/L1/censored sbatch censorSequences.q
+:::
+
+**4) Identify clusters containing TE sequences from multiple species
+(e.g. based on the sequence header names).**
+
+These clusters are the HTT candidates.
+
+***Test dataset for Pipeline B***
+
+A test genome (fungus *Yarrowia lipolytica*) has been placed in
+[test\_genome](Pipeline_B/test_genome), along with a set of L1 repeats
+as a [test\_query](Pipeline_B/test_query). We recommend trying out the
+workflow using these files first.
+
+### C: HTT candidates validation []{#workflowC}
+
+Pipeline C includes several additional steps to validate detected HTT
+candidates from Pipeline A or Pipeline B. Manually checking will be
+required in this section.
+
+***Usage***
+
+NOTE: Assume you are in `Pipeline_C` folder to run these following
+scripts.
+
+**1) Presence/absence analysis based on flanking regions.**
+
+Extend individual TE insertions with 1-2kb of flanking sequence and
+align those sequences to the genomes of related/target species. Use the
+coordinates from these alignments to find the ends of the target
+sequences and extract those sequences from the target genomes. The query
+and target sequences are then globally aligned (MAFFT/MUSCLE) to
+determine presence/absence compared to ancestral insertions in related
+taxa (Manually checking in aligment viewer will be required).
+
+**2) Generate and cluster species-specific sub-clusters using VSEARCH or
+USEARCH, and align all sub-clusters to create consensus sequences, or
+identify centroids.**
+
+Run [2\_usearchConsensus.sbatch](Pipeline_C/2_usearchConsensus.sbatch)
+
+Example usage (please modify job settings according to your HPC
+environment):
+
+::: {#cb15 .sourceCode}
+``` {.sourceCode .bash}
+INDIR=results FILE=HTT_condidates.fasta ID=80 sbatch 2_usearchConsensus.sbatch
 ```
+:::
 
-#### 1h) Confirm hits are really L1 or BovB elements
-[checkCensorOutput.q](scripts/checkCensorOutput.q) uses the output .map file from CENSOR to find which hits are recognised as L1 or BovB sequences. 
-- SPECIES is the species name
-- FILE is the tblastn results file
-- GENOME is the genome you are querying
-- ELEMENT is your retrotransposon (ie. L1 or BovB)
-- QUERY is the text file of RepBase elements you are using to confirm your L1/BovB hits (e.g. [1826_L1_and_Tx1_repbase_headers.txt](queries/1826_L1_and_Tx1_repbase_headers.txt) or [37_BovB_headers.txt](queries/37_BovB_headers.txt))
+**3) Align all consensus sequences/centroids to generate a sequence
+phylogeny.**
 
-E.g. to confirm L1 hits in fungal genome *Yarrowia lipolytica*:
+Global multisequence alignment of representative sequences to generate a
+phylogenetic tree of HTT candidate sequences. This phylogenetic
+distribution of representative sequences can be compared to the species
+phylogeny to see if it is discordant.
+
+Run
+[3\_alignRefineAndTree.sbatch](Pipeline_C/3_alignRefineAndTree.sbatch)
+
+Example usage (please modify job settings according to your HPC
+environment):
+
+::: {#cb16 .sourceCode}
+``` {.sourceCode .bash}
+INDIR=results FILE=HTT_condidates_centroids.fasta MINBLOCKSIZE=5 ALLOWEDGAPS=a sbatch 3_alignRefineAndTree.sbatch
 ```
-SPECIES=Yarrowia.lipolytica FILE=Yarrowia.lipolytica_L1_combined.fasta GENOME=/data/rc003/atma/horizontalTransfer/genomes/fungi/Yarrowia.lipolytica/Yarrowia.lipolytica_GCF_000002525.2_ASM252v1_genomic.fna ELEMENT=L1 QUERY=/data/rc003/atma/horizontalTransfer/queries/1826_L1_and_Tx1_repbase_headers.txt sbatch checkCensorOutput.q
-```
+:::
 
-#### 1i) Make all fasta uppercase
-Some programs automatically mask or ignore lowercase nucleotides (i.e. repetitive regions). To avoid bizarre clusterings later, convert all L1 and BovB sequences to uppercase using [toUpper.q](scripts/toUpper.q).
+**4) Further analysis**
 
-E.g. to upperize L1 hits in fungal genome *Yarrowia lipolytica*:
-```
-ELEMENT=L1 SPECIES=Yarrowia.lipolytica sbatch toUpper.q
-```
+Divergence analysis of HTT candidate clusters to determine activity
+profile and ensure that this profile is consistent with transfer from
+the most closely related TE from another species. Additional/alternative
+methods might include: - using a k-mer based method (e.g Jellyfish) to
+compare k-mers within TE sequences. Provides an alignment-free
+alternative for detecting similarities in TEs across species. - using
+intact ORFs to determine how recently TEs in different species were
+likely active, to estimate the timing of potential HTT events. -
+BLAST-ing sequences from HTT candidate clusters against all eukaryotes
+on NCBI (not just your database of genomes) to identify potential
+vector/source species.
 
-#### 1j) Append species name to sequence headers
-So far we have dealing with each genome separately. Later, we will combine ALL detected L1 sequences from all genomes into one monster file. This will allow us to perform all-against-all clustering to find discordant groupings.
+Additional notes []{#notes}
+---------------------------
 
-Appending the species name to each sequence header makes it easier to keep track of which species/genome each TE came from. Use [appendNameToHeaders.q](scripts/appendNameToHeaders.q), 
+-   1.  Software based TE annotation must be manually curated prior to
+        analysis, as no software tool is guaranteed to find full length
+        TEs, or find all full length TEs.
 
-e.g. to append the species name "Yarrowia.lipolytica" to all L1 sequences from *Yarrowia lipolytica*:
-```
-ELEMENT=L1 SPECIES=Yarrowia.lipolytica sbatch appendNameToHeaders.q
-```
+-   2.  For TEs with two open reading frames, concatenating ORF1 and
+        ORF2 sequences before running TBLASTN may give the best results.
 
-This script also moves all final uppercased, renamed L1 sequences to the directory `final/`. 
+-   3.  We recommend using a combination of TBLASTN (protein sequence
+        input, e.g. TE ORFs) and BLASTN (nucleotide sequence input,
+        e.g. full-length TE) for identifying horizontally transferred
+        TEs in a wide range of genomes. If only using one method,
+        TBLASTN should be prioritised, especially when looking for TEs
+        of the same family in distantly related species. Nucleotide
+        queries (e.g. with BLASTN) may fail to identify TEs that have
+        had longer to mutate/diverge.
 
-This is the end of Part 1. Repeat from the beginning to find and extract BovB sequences (i.e. change the QUERY and ELEMENT variables to BovB).
+-   4.  VSEARCH (the open source alternative to USEARCH) does not
+        support protein sequences, but will not fail if given protein
+        sequence input. Make sure to use another program (e.g. Cd-hit or
+        USEARCH) for clustering of amino acid sequences. The 32-bit
+        version of USEARCH is open source.
 
-### 2) Inferring a representative BovB tree from consensus/centroid sequences
+-   5.  Confirmation of presence/absence is only practical for small
+        numbers of HTT events that can be evaluated by eye.
 
-#### 2a) Consensus sequence approach
-[usearchConsensus.q](scripts/usearchConsensus.q) was used to generate consensus sequence(s) for each species containing BovB. 
+-   6.  Alignment viewers such as JalView can also perform principal
+        component analysis (PCA) of all sequences in a multiple sequence
+        alignment, where each dot represents an individual TE sequence,
+        and dots can be coloured by species. This allows easy
+        visualisation of HTT clusters containing highly similar
+        sequences from different species.
 
-E.g. to generate consensus sequences from the final BovB seqs in cow *Bos taurus*:
-```
-INDIR=/data/rc003/atma/horizontalTransfer/results/BovB/final FILE=Bos.taurus_BovB_final.fasta ID=80 sbatch usearchConsensus.q
-```
+References
+----------
 
-#### 2b) Finding the longest BovB per species
-[usearchSortByLength.q](scripts/usearchSortByLength.q) was used to sort the BovBs in each genome from largest to smallest. If the longest BovB was ridiculously long (e.g. 20kb, from many duplicated copies next to each other), then a maximum seq length of 4kb was adopted. Min seq length for BovBs was set to 2kb.
+-   Galbraith JD, Ludington AJ, Suh A, Sanders KL, Adelson DL. New
+    Environment, New Invaders-Repeated Horizontal Transfer of LINEs to
+    Sea Snakes. Genome Biol Evol. 2020;12:2370--83.
 
-E.g. *Bos taurus* BovBs were sorted by length, with min and max length cutoffs of 2kb and 4kb respectively:
-```
-INDIR=/data/rc003/atma/horizontalTransfer/results/BovB/final FILE=Bos.taurus_BovB_final.fasta MINSEQLENGTH=2000 MAXSEQLENGTH=4000 sbatch usearchSortByLength.q
-```
-The longest BovB under 4kb was chosen as the species "centroid". Centroids were then concatenated into one file:
-```
-cat *_BovB_final.fasta.centroid > allSpecies_BovB_centroids.fasta
-```
+-   Galbraith JD, Ludington AJ, Sanders KL, Suh A, Adelson DL.
+    Horizontal transfer and subsequent explosive expansion of a DNA
+    transposon in sea kraits (Laticauda). Biol Lett. 2021;17:20210342.
 
-#### 2c) Align, refine and infer tree
-[alignRefineAndTree.q](scripts/alignRefineAndTree.q) was used to generate a MUSCLE alignment of the BovB centroids, use Gblocks to extract conserved alignment blocks, and infer a maximum likelihood tree with FastTree:
-```
-INDIR=/data/rc003/atma/horizontalTransfer/results/BovB/final FILE=allSpecies_BovB_centroids.fasta MINBLOCKSIZE=5 ALLOWEDGAPS=a sbatch alignRefineAndTree.q
-```
+-   Ivancevic AM, Kortschak RD, Bertozzi T, Adelson DL. Horizontal
+    transfer of BovB and L1 retrotransposons in eukaryotes. Genome Biol.
+    2018;19:85.
 
-### 3) Distinguishing between RTE and BovB elements
+-   Atma M Ivancevic. (2018, May 15).
+    AdelaideBioinfo/horizontalTransfer: First release of horizontal
+    transfer code (Version v1.0.0). Zenodo.
+    http://doi.org/10.5281/zenodo.1246999
 
-For each genome, used [usearchCluster.q](scripts/usearchCluster.q) to cluster all BovB and other identified RTE sequences together. This determined which "RTE" sequences from RepBase were actually BovBs.
+-   Ivancevic, Atma M, Kortschak, R Daniel, Bertozzi, Terry, & Adelson,
+    David L. (2018). Dataset from: Horizontal transfer of BovB and L1
+    retrotransposons in eukaryotes \[Data set\]. Zenodo.
+    http://doi.org/10.5281/zenodo.1246946
 
-### 4) Clustering of nucleotide BovB sequences from bats and frogs
+The end []{#the-end}
+--------------------
 
-As above, concatenated all frog and bat BovB sequences; then used [usearchSortByLength.q](scripts/usearchSortByLength.q) to sort by sequence length (min 2kb, max 4kb); [usearchCluster.q](scripts/usearchCluster.q) to cluster the sequences; and [alignRefineAndTree.q](scripts/alignRefineAndTree.q) to align and infer a phylogeny. 
-
-### 5) Extraction of nucleotide ORFs and conserved amino acid residues
-
-#### 5a) Extract open reading frames and reverse-transcriptase domains
-
-[findOrfs.q](scripts/findOrfs.q) was used to find open reading frames, and extract:
-- nucleotide open reading frames
-- amino acid open reading frames
-- amino acid reverse transcriptase domains
-
-ORFs and RT domains can be extracted per species, or from the concatenated L1/BovB multi-genome files. 
-E.g. to find ORFs present in our L1 dataset, with min codons 600:
-```
-INDIR=/data/rc003/atma/horizontalTransfer/results/L1/allSpeciesTogether FILE=allSpecies_L1.fasta MINCODONS=600 sbatch findOrfs.sh
-```
-#### 5b) OPTIONAL clustering of ORFs and RT domains
-These ORF and RT files were then clustered, to find potential instances of horizontal transfer.
-[vsearchCluster.q](scripts/vsearchCluster.q) was used for ORF nucleotide sequences.
-[usearchCluster.q](scripts/usearchCluster.q) was used for RT amino acid sequences.
-See the clustering section below for more details.
-
-**Important note: vsearch does not currently support protein sequences. However, it will not fail if you give it a protein sequence input - you will just get a really terrible clustering as it looks for nucleotide bases.**
-
-### 6) All-against-all clustering
-
-#### 6a) Make separate multi-fasta databases for L1 and BovB elements
-L1s:
-```
-# go to dir
-cd /data/rc003/atma/horizontalTransfer/results/L1/final
-# concatenate L1s from all genomes
-cat *_L1_final.fasta > ../allSpeciesTogether/allSpecies_L1.fasta
-# sort and output sequences between 3-9kb
-vsearch -sortbylength allSpecies_L1.fasta -minseqlength 3000 -maxseqlength 9000 --output allSpecies_L1_min3kb_max9kb.fasta
-```
-
-Likewise for BovBs:
-```
-# go to dir
-cd /data/rc003/atma/horizontalTransfer/results/BovB/final
-# concatenate BovBs from all genomes
-cat *_BovB_final.fasta > ../allSpeciesTogether/allSpecies_BovB.fasta
-# sort and output sequences between 2.4-4kb
-vsearch -sortbylength allSpecies_BovB.fasta -minseqlength 2400 -maxseqlength 4000 --output allSpecies_BovB_min2.4kb_max4kb.fasta
-```
-
-#### 6b) Cluster away!
-Use [vsearchCluster.q](scripts/vsearchCluster.q) to cluster each database at different identities. 
-
-E.g. to perform an all-against-all clustering of the L1 database at identity 80%, with cluster prefix "c_":
-```
-INDIR=/data/rc003/atma/horizontalTransfer/results/L1/allSpeciesTogether FILE=allSpecies_L1_min3kb_max9kb.fasta ID=80 PREFIX=c sbatch vsearchCluster.q
-```
-For the paper, we trialled clustering identities of 50-90%. We used "c" as the prefix for nucleotide sequence clusters, "o" as the prefix for open reading frame clusters, and "r" as the prefix for reverse-transcriptase domain clusters. 
-
-We also tried using BLAST+SiLiX for the all-against-all clustering, as described previously (https://github.com/AdelaideBioinfo/L1-dynamics). However, this proved to be orders of magnitude slower with no apparent improvement over VSEARCH.
-
-#### 6c) Filter clusters
-
-Use [filterClusters.q](scripts/filterClusters.q) to categorize clusters based on whether they represent HT events which are cross-Species, cross-Order, cross-Class or cross-Phylum. The cross-Class and cross-Phylum ones tend to be the most interesting.
-
-E.g. run the following after [vsearchCluster.q](scripts/vsearchCluster.q) to categorise L1 nucleotide seq clusters:
-```
-INDIR=/data/rc003/atma/horizontalTransfer/results/L1/allSpeciesTogether FILE=allSpecies_L1_min3kb_max9kb.fasta ID=80 PREFIX=c sbatch filterClusters.q
-```
-
-### 7) Kimura divergence estimates for species containing both TEs
-
-BovB and L1 sequences for each genome were concatenated and screened with RepeatMasker using [repeatmasker.q](scripts/repeatmasker.q).
-
-E.g. To run RepeatMasker on cow *Bos taurus*:
-```
-FILE=Bos.taurus_bothL1andBovB.fasta sbatch repeatmasker.q
-```
-
-Use [plotKimuraDivergence.R](scripts/plotKimuraDivergence.R) to plot the corresponding Kimura divergence of L1s and BovBs.
-
-## THE END
-
-In the words of George Box,
-> "Essentially, all models are wrong, but some are useful"
+In the words of George Box, "Essentially, all models are wrong, but some
+are useful".
