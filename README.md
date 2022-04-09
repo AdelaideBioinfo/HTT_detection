@@ -21,7 +21,7 @@
 
 The specific steps for the identification of HTT events are typically applied to two scenarios with distinct workflows (A and B in Figure 1) that converge at the stage where HTT candidates are validated (C in Figure 1). Workflows A, B and C are described below, with numbered steps in each section that link back to Figure 1.
 
-![Figure 1, The HTT detection flowchart](HTT_detection_workflow.svg)
+![Figure 1, The HTT detection flowchart](HTT_detection_workflow.png)
 
 ## Prerequisites
 
