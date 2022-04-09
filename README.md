@@ -1,9 +1,21 @@
-* TOC
-{:toc}
 
 # Detecting Horizontal Transfer of Transposons (HTT)
 
-{:.no_toc}
+## Table of Contents
+
+-   [Introduction](#introduction)
+-   [Prerequisites](#prerequisites)
+    -   [Recommended programs/tools](#recommended-programs)
+    -   [Optional programs/tools](#optional-programs)
+    -   [For users](#for-users)
+-   [Workflows](#workflows)
+    -   [A: Ab initio workflow](#workflowA)
+    -   [B: Workflow for global HTT screening of specific
+        TEs](#workflowB)
+    -   [C: HTT candidates validation](#workflowC)
+-   [Additional notes](#notes)
+-   [References](#references)
+-   [The end](#the-end)
 
 ## Introduction
 
