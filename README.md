@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 
 # Detecting Horizontal Transfer of Transposons (HTT)
 
