@@ -365,7 +365,6 @@ code {
           : 'default'
     });
   </script>
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</p>
 <h1 id="detecting-horizontal-transfer-of-transposons-htt">Detecting Horizontal Transfer of Transposons (HTT)</h1>
 <h2 id="table-of-contents">Table of Contents</h2>
 <ul>
@@ -387,15 +386,10 @@ TEs</a></li>
 </li>
 <li><a href="#notes">Additional notes</a></li>
 <li><a href="#references">References</a></li>
-<li><a href="#the-end">The end</a>
-=======</li>
+<li><a href="#the-end">The end</a></li>
 </ul>
 <h2 id="introduction">Introduction</h2>
-<p>The specific steps for the identification of HTT events are typically
-applied to two scenarios with distinct workflows (A and B in Figure 1)
-that converge at the stage where HTT candidates are validated (C in
-Figure 1). Workflows A, B and C are described below, with numbered steps
-in each section that link back to Figure 1.</p>
+<p>The specific steps for the identification of HTT events are typically applied to two scenarios with distinct workflows (A and B in Figure 1) that converge at the stage where HTT candidates are validated (C in Figure 1). Workflows A, B and C are described below, with numbered steps in each section that link back to Figure 1.</p>
 <p><img src="HTT_detection_workflow.png" alt="Figure 1, The HTT detection flowchart"></p>
 <h2 id="prerequisites">Prerequisites</h2>
 <h3 id="recommended-programstools-a-name%22recommended-programs%22">Recommended programs/tools <a name="recommended-programs" /></h3>
@@ -403,8 +397,7 @@ in each section that link back to Figure 1.</p>
 <li>BLAST (<a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi">https://blast.ncbi.nlm.nih.gov/Blast.cgi</a>)</li>
 <li>SAMtools (<a href="http://www.htslib.org/">http://www.htslib.org/</a>)</li>
 <li>BEDtools (<a href="http://bedtools.readthedocs.io/en/latest/">http://bedtools.readthedocs.io/en/latest/</a>)</li>
-<li>CENSOR, which requires wu-blast and bioperl
-(<a href="https://girinst.org/downloads/software/censor/">https://girinst.org/downloads/software/censor/</a>)</li>
+<li>CENSOR, which requires wu-blast and bioperl (<a href="https://girinst.org/downloads/software/censor/">https://girinst.org/downloads/software/censor/</a>)</li>
 <li>USEARCH (<a href="https://www.drive5.com/usearch/">https://www.drive5.com/usearch/</a>)</li>
 <li>VSEARCH (<a href="https://github.com/torognes/vsearch">https://github.com/torognes/vsearch</a>)</li>
 <li>MUSCLE (<a href="https://www.drive5.com/muscle/">https://www.drive5.com/muscle/</a>)</li>
@@ -412,78 +405,49 @@ in each section that link back to Figure 1.</p>
 <li>RepeatMasker (<a href="http://www.repeatmasker.org/">http://www.repeatmasker.org/</a>)</li>
 <li>Repeatmodeler (<a href="https://www.repeatmasker.org/RepeatModeler/">https://www.repeatmasker.org/RepeatModeler/</a>)</li>
 <li>Alignment viewer (e.g. JalView, <a href="https://www.jalview.org/">https://www.jalview.org/</a>)</li>
-<li>R (<a href="https://www.r-project.org/">https://www.r-project.org/</a>)
-<ul>
+<li>R (<a href="https://www.r-project.org/">https://www.r-project.org/</a>)</li>
 <li>Required packages: tidyverse, plyranges, BSgenome, optranges</li>
-</ul>
-</li>
 </ul>
 <h3 id="optional-programstools-a-name%22optional-programs%22">Optional programs/tools <a name="optional-programs" /></h3>
 <ul>
-<li>CARP
-(<a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0193588">https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0193588</a>)</li>
+<li>CARP (<a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0193588">https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0193588</a>)</li>
 <li>LASTZ (https://www.bx.psu.edu/~rsharris/lastz/)</li>
 <li>SiLiX (<a href="http://lbbe.univ-lyon1.fr/-SiLiX-?lang=en">http://lbbe.univ-lyon1.fr/-SiLiX-?lang=en</a>)</li>
-<li>Gblocks
-(<a href="https://ls23l.lscore.ucla.edu/MakeTree/documentation/gblocks.html">https://ls23l.lscore.ucla.edu/MakeTree/documentation/gblocks.html</a>)</li>
+<li>Gblocks (<a href="https://ls23l.lscore.ucla.edu/MakeTree/documentation/gblocks.html">https://ls23l.lscore.ucla.edu/MakeTree/documentation/gblocks.html</a>)</li>
 <li>HMMer (<a href="http://hmmer.org/">http://hmmer.org/</a>)</li>
 <li>FastTree (<a href="http://www.microbesonline.org/fasttree/">http://www.microbesonline.org/fasttree/</a>)</li>
 <li>IQ-TREE (<a href="http://www.iqtree.org/">http://www.iqtree.org/</a>)</li>
 <li>CD-HIT (<a href="http://weizhong-lab.ucsd.edu/cd-hit/">http://weizhong-lab.ucsd.edu/cd-hit/</a>)</li>
 </ul>
 <h3 id="for-users-a-name%22for-users%22">For users <a name="for-users" /></h3>
-<p>Our methods are implemented in Linux/R and we assume that users will be
-familiar with the bash shell and R. Some level of familiarity with
-queuing systems in HPC is also recommended.</p>
+<p>Our methods are implemented in Linux/R and we assume that users will be familiar with the bash shell and R. Some level of familiarity with queuing systems in HPC is also recommended.</p>
 <h2 id="workflows">Workflows</h2>
 <h3 id="a-ab-initio-workflow-a-name%22workflowa%22">A: Ab initio workflow <a name="workflowA" /></h3>
-<p>Pipeline A is designed to identify potential horizontally transferred
-sequences in newly sequenced genomes based on their absence from the
-genome of a closely related species.</p>
-<p>All input files should be FASTA files. Raw repeats can be from any <em>ab
-initio</em> software package. Input genomes should be in
-<code>Pipeline_A/genomes/</code> folder.</p>
+<p>Pipeline A is designed to identify potential horizontally transferred sequences in newly sequenced genomes based on their absence from the genome of a closely related species.</p>
+<p>All input files should be FASTA files. Raw repeats can be from any <em>ab initio</em> software package. Input genomes should be in <code>Pipeline_A/genomes/</code> folder.</p>
 <p><em><strong>Usage</strong></em></p>
 <p>NOTE: Assume you are in <code>Pipeline_A</code> folder to run the following scripts.</p>
 <p><strong>0) Ab initio TE annotation using RepeatModeler.</strong></p>
 <p>Run <a href="./Pipeline_A/HT_stage_0.sh">HT_stage_0.sh</a></p>
 <pre class="hljs"><code><div>GENOME=&lt;source_genome&gt; THREADS=&lt;number of threads to use&gt; bash HT_stage_0.sh 
 </div></code></pre>
-<p><strong>1) Cluster and perform initial sweep and generate multiple alignments
-for manual curation of repeats.</strong></p>
+<p><strong>1) Cluster and perform initial sweep and generate multiple alignments for manual curation of repeats.</strong></p>
 <p>Run <a href="./Pipeline_A/HT_stage_1.sh">HT_stage_1.sh</a></p>
 <pre class="hljs"><code><div>GENOME=&lt;source_genome&gt; OUTGROUP=&lt;outgroup_genome&gt; QUERY=&lt;file_containing_raw_repeats&gt; THREADS=&lt;number of threads to use&gt; bash HT_stage_1.sh
 </div></code></pre>
-<p>This script performs an initial search for sequences which have 2 or
-more copies in the query genome and are absent from the outgroup genome.
-If any sequences are absent from the outgroup a multiple sequence alignment will be
-created for curation.</p>
+<p>This script performs an initial search for sequences which have 2 or more copies in the query genome and are absent from the outgroup genome. If any sequences are absent from the outgroup a multiple sequence alignment will be created for curation.</p>
 <p><strong>2) Manually curate the alignments in Geneious, JalView or the like.</strong></p>
 <p>This is necessary as most <em>ab initio</em> aligners do not capture full
 repeats, and some families may be classified incorrectly. Additionally,
 this step can reveal redundant sequences not removed from clustering,
 e.g. non-autonomous DNA transposons derived from autonomous DNA
 transposons.</p>
-<p><strong>3) Confirm HTT condidates based on either repeating local alignment
-finding absence or higher-than-expected-divergence from the genomes of
-them most closely related species.</strong></p>
-<p>Run <a href="./Pipeline_A/HT_stage_2.sh">HT_stage_2.sh</a> using curated
-repeats as input.</p>
+<p><strong>3) Confirm HTT condidates based on either repeating local alignment finding absence or higher-than-expected-divergence from the genomes of them most closely related species.</strong></p>
+<p>Run <a href="./Pipeline_A/HT_stage_2.sh">HT_stage_2.sh</a> using curated repeats as input.</p>
 <pre class="hljs"><code><div>GENOME=&lt;source_genome&gt; SPECIES=&lt;name_of_source_species&gt; OUTGROUP=&lt;outgroup_genome&gt; QUERY=&lt;file_containing_curated_repeats&gt; THREADS=&lt;number of threads to use&gt; bash HT_stage_2.sh
 </div></code></pre>
-<p>This script carries out a validation of the initial search using
-consensus sequences generated from the curation step. This is necessary
-as fragmented repeats which appeared to be mssing from an outgroup
-species may in fact be present. For example, when searching with TEs
-from a seal genome using a mustelid as the outgroup, stage 1 identified
-4 L1 fragments which appeared to be absent from the mink. After curation
-it became clear those L1s were in fact present in the mustelid, just not
-identifed in the initial sweep, likely due to their
-truncation/fragmentation. The initial curation step fixes this problem
-by ensuring that searches of the outgroup genome are done with queries
-that contain the complete TE of interest.</p>
-<p><strong>4) Local alignment of HTT condidates against all available genomes to
-identify most closely related sequences and species with no hits.</strong></p>
+<p>This script carries out a validation of the initial search using consensus sequences generated from the curation step. This is necessary as fragmented repeats which appeared to be mssing from an outgroup species may in fact be present. For example, when searching with TEs from a seal genome using a mustelid as the outgroup, stage 1 identified 4 L1 fragments which appeared to be absent from the mink. After curation it became clear those L1s were in fact present in the mustelid, just not identifed in the initial sweep, likely due to their truncation/fragmentation. The initial curation step fixes this problem by ensuring that searches of the outgroup genome are done with queries that contain the complete TE of interest.</p>
+<p><strong>4) Local alignment of HTT condidates against all available genomes to identify most closely related sequences and species with no hits.</strong></p>
 <p>Run <a href="./Pipeline_A/HT_stage_3.sh">HT_stage_3.sh</a></p>
 <pre class="hljs"><code><div>GENOME=&lt;name_of_source_species&gt; OUTGROUPS=&lt;file_containing_list_of_genomes&gt; QUERY=&lt;file_containing_curated_repeats&gt; THREADS=&lt;number of threads to use&gt; bash HT_stage_2.sh
 </div></code></pre>
@@ -491,34 +455,22 @@ identify most closely related sequences and species with no hits.</strong></p>
 <p><em><strong>Example usage for Pipeline A</strong></em></p>
 <ul>
 <li>
-<ol>
-<li>run genome_downloader.sh to download all high quality snake and echinoderm genomes from GenBank (requires Entrez Direct)</li>
-</ol>
+<p>run genome_downloader.sh to download all high quality snake and echinoderm genomes from GenBank (requires Entrez Direct)</p>
 </li>
 <li>
-<ol start="2">
-<li>unzip <em>Laticauda</em> colubrina genome to use as source genome and <em>Naja naja</em> genome to use as outgroup</li>
-</ol>
+<p>unzip <em>Laticauda</em> colubrina genome to use as source genome and <em>Naja naja</em> genome to use as outgroup</p>
 </li>
 <li>
-<ol start="3">
-<li>run HT_stage_1.sh (example RepeatModeler output of <em>Laticauda colubrina</em> is in the data folder)</li>
-</ol>
+<p>run HT_stage_1.sh (example RepeatModeler output of <em>Laticauda colubrina</em> is in the data folder)</p>
 </li>
 <li>
-<ol start="4">
-<li>manually curate potential HTT candidates</li>
-</ol>
+<p>manually curate potential HTT candidates</p>
 </li>
 <li>
-<ol start="5">
-<li>run HT_stage_2.sh using curated HTT candidates</li>
-</ol>
+<p>run HT_stage_2.sh using curated HTT candidates</p>
 </li>
 <li>
-<ol start="6">
-<li>run HT_stage_3.sh to examine other species in which HTT candidates are present in. With the example dataset several <em>Harbingers</em> identified in <em>Laticauda colubrina</em> will also be present in <em>Laticauda laticaudata</em> and various echinoderms</li>
-</ol>
+<p>run HT_stage_3.sh to examine other species in which HTT candidates are present in. With the example dataset several <em>Harbingers</em> identified in <em>Laticauda colubrina</em> will also be present in <em>Laticauda laticaudata</em> and various echinoderms</p>
 </li>
 </ul>
 <h3 id="b-workflow-for-global-htt-screening-of-specific-tes-a-name%22workflowb%22">B: Workflow for global HTT screening of specific TEs <a name="workflowB" /></h3>
@@ -633,58 +585,46 @@ environment):</p>
 </li>
 </ul>
 <h2 id="additional-notes-a-name%22notes%22">Additional notes <a name="notes" /></h2>
-<ul>
-<li>
 <ol>
-<li>Software based TE annotation must be manually curated prior to
+<li>
+<p>Software based TE annotation must be manually curated prior to
 analysis, as no software tool is guaranteed to find full length
-TEs, or find all full length TEs.</li>
-</ol>
+TEs, or find all full length TEs.</p>
 </li>
 <li>
-<ol start="2">
-<li>For TEs with two open reading frames, concatenating ORF1 and
-ORF2 sequences before running TBLASTN may give the best results.</li>
-</ol>
+<p>For TEs with two open reading frames, concatenating ORF1 and
+ORF2 sequences before running TBLASTN may give the best results.</p>
 </li>
 <li>
-<ol start="3">
-<li>We recommend using a combination of TBLASTN (protein sequence
+<p>We recommend using a combination of TBLASTN (protein sequence
 input, e.g. TE ORFs) and BLASTN (nucleotide sequence input,
 e.g. full-length TE) for identifying horizontally transferred
 TEs in a wide range of genomes. If only using one method,
 TBLASTN should be prioritised, especially when looking for TEs
 of the same family in distantly related species. Nucleotide
 queries (e.g. with BLASTN) may fail to identify TEs that have
-had longer to mutate/diverge.</li>
-</ol>
+had longer to mutate/diverge.</p>
 </li>
 <li>
-<ol start="4">
-<li>VSEARCH (the open source alternative to USEARCH) does not
+<p>VSEARCH (the open source alternative to USEARCH) does not
 support protein sequences, but will not fail if given protein
 sequence input. Make sure to use another program (e.g. Cd-hit or
 USEARCH) for clustering of amino acid sequences. The 32-bit
-version of USEARCH is open source.</li>
-</ol>
+version of USEARCH is open source.</p>
 </li>
 <li>
-<ol start="5">
-<li>Confirmation of presence/absence is only practical for small
-numbers of HTT events that can be evaluated by eye.</li>
-</ol>
+<p>Confirmation of presence/absence is only practical for small
+numbers of HTT events that can be evaluated by eye.</p>
 </li>
 <li>
-<ol start="6">
-<li>Alignment viewers such as JalView can also perform principal
+<p>Alignment viewers such as JalView can also perform principal
 component analysis (PCA) of all sequences in a multiple sequence
 alignment, where each dot represents an individual TE sequence,
 and dots can be coloured by species. This allows easy
 visualisation of HTT clusters containing highly similar
-sequences from different species.</li>
-</ol>
+sequences from different species.</p>
 </li>
-</ul>
+</ol>
 <h2 id="references">References</h2>
 <ul>
 <li>Galbraith JD, Ludington AJ, Suh A, Sanders KL, Adelson DL. New Environment, New Invaders-Repeated Horizontal Transfer of LINEs to Sea Snakes. <em>Genome Biol Evol.</em> 2020;12:2370--83.</li>
@@ -694,7 +634,10 @@ sequences from different species.</li>
 <li>Ivancevic Atma M. (2018, May 15). AdelaideBioinfo/horizontalTransfer: First release of horizontal transfer code (Version v1.0.0). <em>Zenodo.</em> <a href="http://doi.org/10.5281/zenodo.1246999">http://doi.org/10.5281/zenodo.1246999</a></li>
 </ul>
 <h2 id="the-end-a-name%22the-end%22">The end <a name="the-end" /></h2>
-<p><em>“Remember that all models are wrong; the practical question is how wrong do they have to be to not be useful.”</em> George Box in; Box, G.E.P. and Draper, N.R. Empirical Model Building and Response Surfaces. John Wiley &amp; Sons, New York. (1987).</p>
+<blockquote>
+<p><em>Remember that all models are wrong; the practical question is how wrong do they have to be to not be useful.</em></p>
+</blockquote>
+<p>George Box in; Box, G.E.P. and Draper, N.R. Empirical Model Building and Response Surfaces. John Wiley &amp; Sons, New York. (1987).</p>
 
 </body>
 </html>

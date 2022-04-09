@@ -1,31 +1,25 @@
 
-
 # Detecting Horizontal Transfer of Transposons (HTT)
 
 ## Table of Contents
 
--   [Introduction](#introduction)
--   [Prerequisites](#prerequisites)
-    -   [Recommended programs/tools](#recommended-programs)
-    -   [Optional programs/tools](#optional-programs)
-    -   [For users](#for-users)
--   [Workflows](#workflows)
-    -   [A: Ab initio workflow](#workflowA)
-    -   [B: Workflow for global HTT screening of specific
+- [Introduction](#introduction)
+- [Prerequisites](#prerequisites)
+  - [Recommended programs/tools](#recommended-programs)
+  - [Optional programs/tools](#optional-programs)
+  - [For users](#for-users)
+- [Workflows](#workflows)
+  - [A: Ab initio workflow](#workflowA)
+  - [B: Workflow for global HTT screening of specific
         TEs](#workflowB)
-    -   [C: HTT candidates validation](#workflowC)
--   [Additional notes](#notes)
--   [References](#references)
--   [The end](#the-end)
-
+  - [C: HTT candidates validation](#workflowC)
+- [Additional notes](#notes)
+- [References](#references)
+- [The end](#the-end)
 
 ## Introduction
 
-The specific steps for the identification of HTT events are typically
-applied to two scenarios with distinct workflows (A and B in Figure 1)
-that converge at the stage where HTT candidates are validated (C in
-Figure 1). Workflows A, B and C are described below, with numbered steps
-in each section that link back to Figure 1.
+The specific steps for the identification of HTT events are typically applied to two scenarios with distinct workflows (A and B in Figure 1) that converge at the stage where HTT candidates are validated (C in Figure 1). Workflows A, B and C are described below, with numbered steps in each section that link back to Figure 1.
 
 ![Figure 1, The HTT detection flowchart](HTT_detection_workflow.png)
 
@@ -33,52 +27,42 @@ in each section that link back to Figure 1.
 
 ### Recommended programs/tools <a name="recommended-programs" />
 
-* BLAST (<https://blast.ncbi.nlm.nih.gov/Blast.cgi>)
-* SAMtools (<http://www.htslib.org/>)
-* BEDtools (<http://bedtools.readthedocs.io/en/latest/>)
-* CENSOR, which requires wu-blast and bioperl
-    (<https://girinst.org/downloads/software/censor/>)
-* USEARCH (<https://www.drive5.com/usearch/>)
-* VSEARCH (<https://github.com/torognes/vsearch>)
-* MUSCLE (<https://www.drive5.com/muscle/>)
-* MAFFT (<https://mafft.cbrc.jp/alignment/software/>)
-* RepeatMasker (<http://www.repeatmasker.org/>)
-* Repeatmodeler (<https://www.repeatmasker.org/RepeatModeler/>)
-* Alignment viewer (e.g. JalView, <https://www.jalview.org/>)
-* R (<https://www.r-project.org/>)
-  * Required packages: tidyverse, plyranges, BSgenome, optranges
+- BLAST (<https://blast.ncbi.nlm.nih.gov/Blast.cgi>)
+- SAMtools (<http://www.htslib.org/>)
+- BEDtools (<http://bedtools.readthedocs.io/en/latest/>)
+- CENSOR, which requires wu-blast and bioperl (<https://girinst.org/downloads/software/censor/>)
+- USEARCH (<https://www.drive5.com/usearch/>)
+- VSEARCH (<https://github.com/torognes/vsearch>)
+- MUSCLE (<https://www.drive5.com/muscle/>)
+- MAFFT (<https://mafft.cbrc.jp/alignment/software/>)
+- RepeatMasker (<http://www.repeatmasker.org/>)
+- Repeatmodeler (<https://www.repeatmasker.org/RepeatModeler/>)
+- Alignment viewer (e.g. JalView, <https://www.jalview.org/>)
+- R (<https://www.r-project.org/>)
+- Required packages: tidyverse, plyranges, BSgenome, optranges
 
 ### Optional programs/tools <a name="optional-programs" />
 
-* CARP
-    (<https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0193588>)
-* LASTZ (https://www.bx.psu.edu/\~rsharris/lastz/)
-* SiLiX (<http://lbbe.univ-lyon1.fr/-SiLiX-?lang=en>)
-* Gblocks
-    (<https://ls23l.lscore.ucla.edu/MakeTree/documentation/gblocks.html>)
-* HMMer (<http://hmmer.org/>)
-* FastTree (<http://www.microbesonline.org/fasttree/>)
-* IQ-TREE (<http://www.iqtree.org/>)
-* CD-HIT (<http://weizhong-lab.ucsd.edu/cd-hit/>)
+- CARP (<https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0193588>)
+- LASTZ (https://www.bx.psu.edu/\~rsharris/lastz/)
+- SiLiX (<http://lbbe.univ-lyon1.fr/-SiLiX-?lang=en>)
+- Gblocks (<https://ls23l.lscore.ucla.edu/MakeTree/documentation/gblocks.html>)
+- HMMer (<http://hmmer.org/>)
+- FastTree (<http://www.microbesonline.org/fasttree/>)
+- IQ-TREE (<http://www.iqtree.org/>)
+- CD-HIT (<http://weizhong-lab.ucsd.edu/cd-hit/>)
 
 ### For users <a name="for-users" />
 
-Our methods are implemented in Linux/R and we assume that users will be
-familiar with the bash shell and R. Some level of familiarity with
-queuing systems in HPC is also recommended.
+Our methods are implemented in Linux/R and we assume that users will be familiar with the bash shell and R. Some level of familiarity with queuing systems in HPC is also recommended.
 
-Workflows
----------
+## Workflows
 
 ### A: Ab initio workflow <a name="workflowA" />
 
-Pipeline A is designed to identify potential horizontally transferred
-sequences in newly sequenced genomes based on their absence from the
-genome of a closely related species.
+Pipeline A is designed to identify potential horizontally transferred sequences in newly sequenced genomes based on their absence from the genome of a closely related species.
 
-All input files should be FASTA files. Raw repeats can be from any *ab
-initio* software package. Input genomes should be in
-`Pipeline_A/genomes/` folder.
+All input files should be FASTA files. Raw repeats can be from any *ab initio* software package. Input genomes should be in `Pipeline_A/genomes/` folder.
 
 ***Usage***
 
@@ -92,8 +76,7 @@ Run [HT\_stage\_0.sh](./Pipeline_A/HT_stage_0.sh)
 GENOME=<source_genome> THREADS=<number of threads to use> bash HT_stage_0.sh 
 ```
 
-**1) Cluster and perform initial sweep and generate multiple alignments
-for manual curation of repeats.**
+**1) Cluster and perform initial sweep and generate multiple alignments for manual curation of repeats.**
 
 Run [HT\_stage\_1.sh](./Pipeline_A/HT_stage_1.sh)
 
@@ -101,10 +84,7 @@ Run [HT\_stage\_1.sh](./Pipeline_A/HT_stage_1.sh)
 GENOME=<source_genome> OUTGROUP=<outgroup_genome> QUERY=<file_containing_raw_repeats> THREADS=<number of threads to use> bash HT_stage_1.sh
 ```
 
-This script performs an initial search for sequences which have 2 or
-more copies in the query genome and are absent from the outgroup genome.
-If any sequences are absent from the outgroup a multiple sequence alignment will be
-created for curation.
+This script performs an initial search for sequences which have 2 or more copies in the query genome and are absent from the outgroup genome. If any sequences are absent from the outgroup a multiple sequence alignment will be created for curation.
 
 **2) Manually curate the alignments in Geneious, JalView or the like.**
 
@@ -114,31 +94,17 @@ this step can reveal redundant sequences not removed from clustering,
 e.g. non-autonomous DNA transposons derived from autonomous DNA
 transposons.
 
-**3) Confirm HTT condidates based on either repeating local alignment
-finding absence or higher-than-expected-divergence from the genomes of
-them most closely related species.**
+**3) Confirm HTT condidates based on either repeating local alignment finding absence or higher-than-expected-divergence from the genomes of them most closely related species.**
 
-Run [HT\_stage\_2.sh](./Pipeline_A/HT_stage_2.sh) using curated
-repeats as input.
+Run [HT\_stage\_2.sh](./Pipeline_A/HT_stage_2.sh) using curated repeats as input.
 
 ```bash
 GENOME=<source_genome> SPECIES=<name_of_source_species> OUTGROUP=<outgroup_genome> QUERY=<file_containing_curated_repeats> THREADS=<number of threads to use> bash HT_stage_2.sh
 ```
 
-This script carries out a validation of the initial search using
-consensus sequences generated from the curation step. This is necessary
-as fragmented repeats which appeared to be mssing from an outgroup
-species may in fact be present. For example, when searching with TEs
-from a seal genome using a mustelid as the outgroup, stage 1 identified
-4 L1 fragments which appeared to be absent from the mink. After curation
-it became clear those L1s were in fact present in the mustelid, just not
-identifed in the initial sweep, likely due to their
-truncation/fragmentation. The initial curation step fixes this problem
-by ensuring that searches of the outgroup genome are done with queries
-that contain the complete TE of interest.
+This script carries out a validation of the initial search using consensus sequences generated from the curation step. This is necessary as fragmented repeats which appeared to be mssing from an outgroup species may in fact be present. For example, when searching with TEs from a seal genome using a mustelid as the outgroup, stage 1 identified 4 L1 fragments which appeared to be absent from the mink. After curation it became clear those L1s were in fact present in the mustelid, just not identifed in the initial sweep, likely due to their truncation/fragmentation. The initial curation step fixes this problem by ensuring that searches of the outgroup genome are done with queries that contain the complete TE of interest.
 
-**4) Local alignment of HTT condidates against all available genomes to
-identify most closely related sequences and species with no hits.**
+**4) Local alignment of HTT condidates against all available genomes to identify most closely related sequences and species with no hits.**
 
 Run [HT\_stage\_3.sh](./Pipeline_A/HT_stage_3.sh)
 
@@ -150,17 +116,17 @@ This script searches for repeats verified as HTT candidates, searches for them i
 
 ***Example usage for Pipeline A***
 
-* 1.  run genome\_downloader.sh to download all high quality snake and echinoderm genomes from GenBank (requires Entrez Direct)
+- run genome\_downloader.sh to download all high quality snake and echinoderm genomes from GenBank (requires Entrez Direct)
 
-* 2.  unzip *Laticauda* colubrina genome to use as source genome and *Naja naja* genome to use as outgroup
+- unzip *Laticauda* colubrina genome to use as source genome and *Naja naja* genome to use as outgroup
 
-* 3.  run HT\_stage\_1.sh (example RepeatModeler output of *Laticauda colubrina* is in the data folder)
+- run HT\_stage\_1.sh (example RepeatModeler output of *Laticauda colubrina* is in the data folder)
 
-* 4.  manually curate potential HTT candidates
+- manually curate potential HTT candidates
 
-* 5.  run HT\_stage\_2.sh using curated HTT candidates
+- run HT\_stage\_2.sh using curated HTT candidates
 
-* 6.  run HT\_stage\_3.sh to examine other species in which HTT candidates are present in. With the example dataset several *Harbingers* identified in *Laticauda colubrina* will also be present in *Laticauda laticaudata* and various echinoderms
+- run HT\_stage\_3.sh to examine other species in which HTT candidates are present in. With the example dataset several *Harbingers* identified in *Laticauda colubrina* will also be present in *Laticauda laticaudata* and various echinoderms
 
 ### B: Workflow for global HTT screening of specific TEs <a name="workflowB" />
 
@@ -324,6 +290,7 @@ NOTE: Assume you are in `Pipeline_C` folder to run these following scripts.
 
 Extend individual TE insertions with 1-2kb of flanking sequence and align those sequences to the genomes of related/target species. Use the coordinates from these alignments to find the ends of the target sequences and extract those sequences from the target genomes. The query and target sequences are then globally aligned (MAFFT/MUSCLE) to determine presence/absence compared to ancestral insertions in related taxa (Manually checking in aligment viewer will be required).
 
+
 **2) Generate and cluster species-specific sub-clusters using VSEARCH or USEARCH, and align all sub-clusters to create consensus sequences, or identify centroids.**
 
 Run [2\_usearchConsensus.sbatch](./Pipeline_C/2_usearchConsensus.sbatch)
@@ -352,22 +319,22 @@ INDIR=results FILE=HTT_condidates_centroids.fasta MINBLOCKSIZE=5 ALLOWEDGAPS=a s
 
 Divergence analysis of HTT candidate clusters to determine activity profile and ensure that this profile is consistent with transfer from the most closely related TE from another species. Additional/alternative methods might include:
 
-* using a k-mer based method (e.g Jellyfish) to compare k-mers within TE sequences. Jellyfish provides an alignment-free alternative for detecting similarities in TEs across species.
+- using a k-mer based method (e.g Jellyfish) to compare k-mers within TE sequences. Jellyfish provides an alignment-free alternative for detecting similarities in TEs across species.
 
-* using intact ORFs to determine how recently TEs in different species were likely active, to estimate the timing of potential HTT events.
+- using intact ORFs to determine how recently TEs in different species were likely active, to estimate the timing of potential HTT events.
 
-* BLAST-ing sequences from HTT candidate clusters against all eukaryotes on NCBI (not just your database of genomes) to identify potential vector/source species.
+- BLAST-ing sequences from HTT candidate clusters against all eukaryotes on NCBI (not just your database of genomes) to identify potential vector/source species.
 
 ## Additional notes <a name="notes" />
 
-* 1.  Software based TE annotation must be manually curated prior to
+1. Software based TE annotation must be manually curated prior to
         analysis, as no software tool is guaranteed to find full length
         TEs, or find all full length TEs.
 
-* 2.  For TEs with two open reading frames, concatenating ORF1 and
+2. For TEs with two open reading frames, concatenating ORF1 and
         ORF2 sequences before running TBLASTN may give the best results.
 
-* 3.  We recommend using a combination of TBLASTN (protein sequence
+3. We recommend using a combination of TBLASTN (protein sequence
         input, e.g. TE ORFs) and BLASTN (nucleotide sequence input,
         e.g. full-length TE) for identifying horizontally transferred
         TEs in a wide range of genomes. If only using one method,
@@ -376,16 +343,16 @@ Divergence analysis of HTT candidate clusters to determine activity profile and 
         queries (e.g. with BLASTN) may fail to identify TEs that have
         had longer to mutate/diverge.
 
-* 4.  VSEARCH (the open source alternative to USEARCH) does not
+4. VSEARCH (the open source alternative to USEARCH) does not
         support protein sequences, but will not fail if given protein
         sequence input. Make sure to use another program (e.g. Cd-hit or
         USEARCH) for clustering of amino acid sequences. The 32-bit
         version of USEARCH is open source.
 
-* 5.  Confirmation of presence/absence is only practical for small
+5. Confirmation of presence/absence is only practical for small
         numbers of HTT events that can be evaluated by eye.
 
-* 6.  Alignment viewers such as JalView can also perform principal
+6. Alignment viewers such as JalView can also perform principal
         component analysis (PCA) of all sequences in a multiple sequence
         alignment, where each dot represents an individual TE sequence,
         and dots can be coloured by species. This allows easy
@@ -394,12 +361,14 @@ Divergence analysis of HTT candidate clusters to determine activity profile and 
 
 ## References
 
-* Galbraith JD, Ludington AJ, Suh A, Sanders KL, Adelson DL. New Environment, New Invaders-Repeated Horizontal Transfer of LINEs to Sea Snakes. *Genome Biol Evol.* 2020;12:2370--83.
-* Galbraith JD, Ludington AJ, Sanders KL, Suh A, Adelson DL. Horizontal transfer and subsequent explosive expansion of a DNA transposon in sea kraits (Laticauda). *Biol Lett.* 2021;17:20210342.
-* Ivancevic AM, Kortschak RD, Bertozzi T, Adelson DL. Horizontal transfer of BovB and L1 retrotransposons in eukaryotes. *Genome Biol.* 2018;19:85.
-* Ivancevic, Atma M, Kortschak, R Daniel, Bertozzi, Terry, & Adelson, David L. (2018). Dataset from: Horizontal transfer of BovB and L1 retrotransposons in eukaryotes \[Data set\]. *Zenodo.* <http://doi.org/10.5281/zenodo.1246946>
-* Ivancevic Atma M. (2018, May 15). AdelaideBioinfo/horizontalTransfer: First release of horizontal transfer code (Version v1.0.0). *Zenodo.* <http://doi.org/10.5281/zenodo.1246999>
+- Galbraith JD, Ludington AJ, Suh A, Sanders KL, Adelson DL. New Environment, New Invaders-Repeated Horizontal Transfer of LINEs to Sea Snakes. *Genome Biol Evol.* 2020;12:2370--83.
+- Galbraith JD, Ludington AJ, Sanders KL, Suh A, Adelson DL. Horizontal transfer and subsequent explosive expansion of a DNA transposon in sea kraits (Laticauda). *Biol Lett.* 2021;17:20210342.
+- Ivancevic AM, Kortschak RD, Bertozzi T, Adelson DL. Horizontal transfer of BovB and L1 retrotransposons in eukaryotes. *Genome Biol.* 2018;19:85.
+- Ivancevic, Atma M, Kortschak, R Daniel, Bertozzi, Terry, & Adelson, David L. (2018). Dataset from: Horizontal transfer of BovB and L1 retrotransposons in eukaryotes \[Data set\]. *Zenodo.* <http://doi.org/10.5281/zenodo.1246946>
+- Ivancevic Atma M. (2018, May 15). AdelaideBioinfo/horizontalTransfer: First release of horizontal transfer code (Version v1.0.0). *Zenodo.* <http://doi.org/10.5281/zenodo.1246999>
 
 ## The end <a name="the-end" />
 
-*“Remember that all models are wrong; the practical question is how wrong do they have to be to not be useful.”* George Box in; Box, G.E.P. and Draper, N.R. Empirical Model Building and Response Surfaces. John Wiley & Sons, New York. (1987).
+> *Remember that all models are wrong; the practical question is how wrong do they have to be to not be useful.*
+
+George Box in; Box, G.E.P. and Draper, N.R. Empirical Model Building and Response Surfaces. John Wiley & Sons, New York. (1987).
