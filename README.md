@@ -58,7 +58,7 @@ Our methods are implemented in Linux/R and we assume that users will be familiar
 
 ## Workflows
 
-### A: Ab initio workflow <a name="workflowA" />
+### A: *Ab initio* workflow <a name="workflowA" />
 
 Pipeline A is designed to identify potential horizontally transferred sequences in newly sequenced genomes based on their absence from the genome of a closely related species.
 
