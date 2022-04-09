@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 # Detecting Horizontal Transfer of Transposons (HTT)
 
@@ -16,6 +17,7 @@
 -   [Additional notes](#notes)
 -   [References](#references)
 -   [The end](#the-end)
+
 
 ## Introduction
 
