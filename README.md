@@ -1,6 +1,8 @@
 
 # Detecting Horizontal Transfer of Transposons (HTT)
 
+By James D. Galbraith, Atma M. Ivancevic, Zhipeng Qu and David L. Adelson
+
 ## Table of Contents
 
 - [Introduction](#introduction)
