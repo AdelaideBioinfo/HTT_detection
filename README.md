@@ -94,7 +94,7 @@ this step can reveal redundant sequences not removed from clustering,
 e.g. non-autonomous DNA transposons derived from autonomous DNA
 transposons.
 
-**3) Confirm HTT condidates based on either repeating local alignment finding absence or higher-than-expected-divergence from the genomes of them most closely related species.**
+**3) Confirm HTT condidates based on either repeating local alignment finding absence or higher-than-expected-divergence from the genomes of the most closely related species.**
 
 Run [HT\_stage\_2.sh](./Pipeline_A/HT_stage_2.sh) using curated repeats as input.
 
