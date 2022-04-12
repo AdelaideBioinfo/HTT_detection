@@ -114,7 +114,7 @@ Run [HT\_stage\_3.sh](./Pipeline_A/HT_stage_3.sh)
 GENOME=<name_of_source_species> OUTGROUPS=<file_containing_list_of_genomes> QUERY=<file_containing_curated_repeats> THREADS=<number of threads to use> bash HT_stage_2.sh
 ```
 
-This script searches for repeats verified as HTT candidates, searches for them in other species (from a list provided) and creates a MSA of each repeats if identified in a species ready for curation. This script is written to utilise genomes downloaded from Genbank and present in the `Pipeline_A/genomes/` folder and gzipped. If necessary modify this script for your particular situation.
+This script searches for repeats verified as HTT candidates, searches for them in other species (from a list provided) and creates a MSA of repeats if identified in a species ready for curation. This script is written to utilise genomes downloaded from Genbank and present in the `Pipeline_A/genomes/` folder and gzipped. If necessary modify this script for your particular situation.
 
 ***Example usage for Pipeline A***
 
